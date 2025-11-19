@@ -1,0 +1,149 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 1px;
+}
+
+.logo-icon {
+  font-size: 2rem;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.brand-name {
+  color: white;
+}
+
+.links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.links a::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #00d4ff;
+  transition: width 0.3s;
+}
+
+.links a:hover::after {
+  width: 100%;
+}
+
+.links a:hover {
+  color: #00d4ff;
+}
+
+/* Creative Back Button */
+.creative-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: linear-gradient(135deg, #00d4ff 0%, #0097a7 100%);
+  color: white;
+  border: none;
+  padding: 0.9rem 2rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(0, 188, 212, 0.3);
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.creative-back-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+  z-index: 0;
+}
+
+.creative-back-btn:hover::before {
+  left: 100%;
+}
+
+.back-icon {
+  font-size: 1.2rem;
+  transition: transform 0.3s;
+  display: inline-block;
+}
+
+.back-text {
+  position: relative;
+  z-index: 1;
+}
+
+.creative-back-btn:hover .back-icon {
+  transform: translateX(-4px);
+}
+
+.creative-back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 188, 212, 0.4);
+}
+
+.creative-back-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .links {
+    gap: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .creative-back-btn {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  .navbar-brand {
+    width: 100%;
+  }
+}
+
+.info-navbar {
+  margin-bottom: 4rem;
+}
