@@ -1,38 +1,270 @@
-.App {
-  text-align: center;
+* {
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Poppins', sans-serif;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+html {
+    scroll-behavior: smooth;
+	overflow-y: auto;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+body {
+    height: 100vh;
+    background: url('./images/bground.jpg') no-repeat;
+    background-size: cover;
+	background-color: #333333;
+    background-position: center;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+
+li {
+	list-style: none;
+}
+
+.navbar a {
+	text-decoration: none;
+	color: #fff;
+	font-size: 1rem;
+}
+
+.links {
+  font-weight: bold;
+}
+
+.links .action_btn:hover {
+  background-color: #fff;
+  color: #333333;
+}
+
+.links a:hover {
+	color: #333333;
+}
+
+.logo-login {
+    display: flex;
+    justify-content: center;
+    align-items: center; /* vertically centers icon + text */
+    gap: 8px;            /* spacing between icon and text */
+}
+
+.logo-icon {
+    font-size: 2rem;     /* adjust as needed */
+    color: #fff;         /* match your navbar text color */
+}
+
+header {
+	position: fixed;
+	top: 0;
+	width: 100%;
+	padding: 0;
+	z-index: 1000;
+}
+
+.navbar {
+	width: 100%;
+	height: 60px;
+	margin: 0 auto;
+ 	padding: 0px 20px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+  	background: transparent;
+	backdrop-filter: blur(20px);
+  	border-bottom: 2px solid rgba(255, 255, 255, .2);
+	box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+}
+
+.navbar .logo-login a{
+	font-size: 2rem;
+	font-weight: bold;
+}
+
+.navbar .links {
+	display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+	gap: 2rem;
 }
 
-.App-link {
-  color: #61dafb;
+.navbar .toggle_btn {
+	color: #fff;
+	font-size: 1.5rem;
+	cursor: pointer;
+	display: none;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.login_btn {
+	background-color: #EAE9EE;
+	color: #333333;
+	padding: 0.5rem 1rem;
+	border: none;
+	outline: none;
+  width: 150px;
+	border-radius: 20px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: scale .2 ease;
+  display: block;       /* make it block */
+  margin: 0 auto;
+}
+
+.login_btn:hover {
+	scale: 1.05;
+	color: #444444;
+}
+
+.login_btn:active {
+	scale: 0.95;
+}
+
+.action_btn {
+	background-color: #333333;
+	color: #fff;
+	padding: 0.5rem 1rem;
+	border: none;
+	outline: none;
+	border-radius: 20px;
+	font-size: 0.8rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: scale .2 ease;
+}
+
+.action_btn:hover{
+	scale: 1.05;
+	color: #444444;
+}
+
+.action_btn:active {
+	scale: 0.95;
+}
+
+.register-wrapper .wrapper{
+    width: 600px;
+	margin-top: 155px;
+}
+
+.about-wrapper .wrapper{
+    width: 70%;
+	margin-top: 155px;
+}
+
+.about-wrapper li{
+    list-style: circle;
+}
+.emails_contactus a {
+	color: #FFA500;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+.center-wrapper {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wrapper {
+	width: 450px;
+	background: transparent;
+	backdrop-filter: blur(20px);
+	border: 2px solid rgba(255, 255, 255, .2);
+	box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+	color: #fff;
+	border-radius: 10px;
+	padding: 30px 40px;
+  margin: 100px auto;
+}
+
+.wrapper h1 {
+	font-size: 36px;
+	text-align: center;
+}
+
+.wrapper .input-box {
+	position: relative;
+	width: 100%;
+	height: 50px;
+	margin: 30px 0;
+}
+
+.input-box input {
+	width: 100%;
+	height: 100%;
+	background: transparent;
+	border: none;
+	outline: none;
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	border-radius: 40px;
+	font-size: 16px;
+	color: #fff;
+	padding: 20px 45px 20px 20px;
+}
+
+.input-box input::placeholder {
+	color: #fff;
+}
+
+.input-box i {
+	position: absolute;
+	right: 20px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 20px;
+}
+
+.wrapper .btn {
+	width: 100%;
+	height: 45px;
+	background: #333333;
+	border: none;
+	outline: none;
+	border-radius: 40px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+	cursor: pointer;
+	font-size: 16px;
+	color: #fff;
+	font-weight: 600;
+}
+
+.wrapper .register-link {
+	font-size: 14.5px;
+	text-align: center;
+	margin: 20px 0 15px;
+}
+
+
+.register-link p a {
+	color: #FFA500;
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.register-link p a:hover{
+	text-decoration: underline;
+}
+
+
+/* RESPONSIVE DESIGN */
+@media(max-width: 992px) {
+	.navbar .links,
+	.navbar .action_btn {
+		display: none;
+	}
+
+	.navbar .toggle_btn{
+		display: block;
+	}
+
+	.dropdown_menu {
+		display: block;
+	}
+
+  .wrapper {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
 }
