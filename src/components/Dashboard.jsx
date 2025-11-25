@@ -47,7 +47,7 @@ export default function Dashboard() {
   const allParkingSlots = [
     {
       id: 1,
-      name: 'IT-Park Central',
+      name: 'SM City Cebu',
       type: 'Parking Slot',
       description: 'Good for motorcycle',
       distance: '2.3 KM',
@@ -57,7 +57,7 @@ export default function Dashboard() {
     },
     {
       id: 2,
-      name: 'Ayala Southgate',
+      name: 'SM Mabolo',
       type: 'Parking Slot',
       description: 'Good for motorcycle & vehicle',
       distance: '5 KM',
@@ -67,13 +67,33 @@ export default function Dashboard() {
     },
     {
       id: 3,
-      name: 'SM City Parking',
+      name: 'IT Park',
       type: 'Parking Slot',
       description: 'Good for all vehicles',
       distance: '3.5 KM',
       price: '$6/hr',
       image: '🅿️',
       available: 15
+    },
+    {
+      id: 4,
+      name: 'Ayala Center Cebu',
+      type: 'Parking Slot',
+      description: 'Good for motorcycle & vehicle',
+      distance: '4.2 KM',
+      price: '$7/hr',
+      image: '🅿️',
+      available: 20
+    },
+    {
+      id: 5,
+      name: 'E-Mall',
+      type: 'Parking Slot',
+      description: 'Good for all vehicles',
+      distance: '1.8 KM',
+      price: '$5/hr',
+      image: '🅿️',
+      available: 10
     }
   ];
 
@@ -240,7 +260,12 @@ export default function Dashboard() {
                 <div className="map-marker marker-3">📍</div>
                 <p className="map-text">Map View</p>
               </div>
-              <button className="open-maps-btn">Open Maps</button>
+              <button 
+                className="open-maps-btn"
+                onClick={() => navigate('/parking-locations')}
+              >
+                Open Maps
+              </button>
             </div>
           </div>
         </div>

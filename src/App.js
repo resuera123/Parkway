@@ -6,6 +6,7 @@ import Login from './components/LoginRegisterPages/Login.jsx';
 import Register from './components/LoginRegisterPages/Register.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import Profile from './components/Profile.jsx';
+import ParkingLocations from './components/ParkingLocations.jsx';
 import About from './components/NavOptions/About.jsx';
 import Services from './components/NavOptions/Services.jsx';
 import Contact from './components/NavOptions/Contact.jsx';
@@ -21,6 +22,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/parking-locations" element={<ParkingLocations />} />
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
