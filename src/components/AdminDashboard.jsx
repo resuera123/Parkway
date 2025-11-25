@@ -159,6 +159,55 @@ export default function AdminDashboard() {
     navigate('/');
   };
 
+  const handleConfirmBooking = (bookingId) => {
+    const allBookings = JSON.parse(localStorage.getItem('bookings')) || [];
+    const bookingIndex = allBookings.findIndex(b => b.id === bookingId);
+    
+    if (bookingIndex === -1) return;
+    
+    const booking = allBookings[bookingIndex];
+    
+    // Update booking status to confirmed
+    allBookings[bookingIndex] = { ...booking, status: 'confirmed' };
+    localStorage.setItem('bookings', JSON.stringify(allBookings));
+    
+    // Create user notification
+    const userNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
+    const confirmNotification = {
+      id: Date.now(),
+      userId: booking.userId,
+      type: 'booking',
+      title: 'Booking Confirmed!',
+      message: `Your booking at ${booking.parkingSlot} for ${booking.dateReserved} has been confirmed by admin. Time: ${booking.timeIn} - ${booking.timeOut}`,
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+    userNotifications.push(confirmNotification);
+    localStorage.setItem('notifications', JSON.stringify(userNotifications));
+    
+    // Reserve a parking slot
+    const loc = parkingSlots.find(p => p.name === booking.parkingSlot);
+    if (loc) {
+      const key = `slotStatuses_${loc.id}`;
+      let statuses = JSON.parse(localStorage.getItem(key)) || [];
+      const freeIndex = statuses.findIndex(s => !s.reserved);
+      if (freeIndex !== -1) {
+        statuses[freeIndex].reserved = true;
+        localStorage.setItem(key, JSON.stringify(statuses));
+        const bookedCount = statuses.filter(s => s.reserved).length;
+        const updatedParking = parkingSlots.map(p =>
+          p.id === loc.id ? { ...p, bookedSlots: bookedCount } : p
+        );
+        localStorage.setItem('parkingSlots', JSON.stringify(updatedParking));
+        setParkingSlots(updatedParking);
+        if (loc.id === selectedLocationId) setLocationSlots(statuses);
+      }
+    }
+    
+    loadBookings();
+    alert('Booking confirmed and user notified!');
+  };
+
   // Monthly report calculations
   const currentMonthKey = new Date().toISOString().slice(0, 7); // YYYY-MM
   const monthlyReport = parkingSlots.map(loc => {
@@ -312,6 +361,7 @@ export default function AdminDashboard() {
                 <div key={b.id} className="booking-row">
                   <div className="b-col main">
                     <strong>{b.parkingSlot}</strong>
+                    <small>{b.userId}</small>
                     <small>{new Date(b.bookingDate).toLocaleString()}</small>
                   </div>
                   <div className="b-col">{b.dateReserved}</div>
@@ -321,6 +371,19 @@ export default function AdminDashboard() {
                   <div className="b-col">₱{b.totalPrice}</div>
                   <div className="b-col status">
                     <span className={`mini-status ${b.status}`}>{b.status}</span>
+                  </div>
+                  <div className="b-col actions">
+                    {b.status === 'pending' && (
+                      <button 
+                        className="confirm-booking-btn"
+                        onClick={() => handleConfirmBooking(b.id)}
+                      >
+                        Confirm
+                      </button>
+                    )}
+                    {b.status === 'confirmed' && (
+                      <span className="confirmed-text">✓ Confirmed</span>
+                    )}
                   </div>
                 </div>
               )) : <div className="empty-text">No bookings recorded.</div>}

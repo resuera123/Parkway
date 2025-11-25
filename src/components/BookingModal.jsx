@@ -78,39 +78,41 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
       vehicleType: bookingData.vehicleType,
       duration: calculateDuration(),
       totalPrice: calculateTotalPrice(),
-      status: 'pending', // changed from confirmed
+      status: 'pending',
       bookingDate: new Date().toISOString()
     };
     bookings.push(newBooking);
     localStorage.setItem('bookings', JSON.stringify(bookings));
 
-    // User notification (pending)
+    // Create user notification
     const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
-    notifications.push({
+    const newNotification = {
       id: Date.now() + 1,
       userId: currentUser.username,
-      type: 'booking-pending',
-      title: 'Booking Submitted',
-      message: `Your booking at ${parkingSlot.name} is awaiting admin confirmation.`,
+      type: 'booking',
+      title: 'Booking Submitted!',
+      message: `Your booking request for ${parkingSlot.name} on ${bookingData.dateReserved} has been submitted and is awaiting admin confirmation.`,
       timestamp: new Date().toISOString(),
       read: false
-    });
+    };
+    notifications.push(newNotification);
     localStorage.setItem('notifications', JSON.stringify(notifications));
 
-    // Admin notification (request)
+    // Create admin notification
     const adminNotifications = JSON.parse(localStorage.getItem('adminNotifications')) || [];
-    adminNotifications.push({
+    const adminNotif = {
       id: Date.now() + 2,
       bookingId: newBooking.id,
       title: 'New Booking Request',
-      message: `${currentUser.firstName} booked ${parkingSlot.name} on ${bookingData.dateReserved} (${bookingData.timeIn} - ${bookingData.timeOut})`,
+      message: `${currentUser.firstName} ${currentUser.lastName} requested ${parkingSlot.name} for ${bookingData.dateReserved} (${bookingData.timeIn} - ${bookingData.timeOut})`,
       timestamp: new Date().toISOString(),
       read: false,
       status: null
-    });
+    };
+    adminNotifications.push(adminNotif);
     localStorage.setItem('adminNotifications', JSON.stringify(adminNotifications));
 
-    setSuccess('Booking confirmed successfully!');
+    setSuccess('Booking request submitted! Awaiting admin confirmation.');
     
     setTimeout(() => {
       onClose();

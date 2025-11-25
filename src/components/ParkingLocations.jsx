@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import '../styles/ParkingLocations.css';
 import { useNavigate } from 'react-router-dom';
 import { BsBusFrontFill } from "react-icons/bs";
+import smcityImg from '../images/smcity.jpg';
+import smmaboloImg from '../images/smmabolo.jpg';
+import itparkImg from '../images/itpark.jpeg';
+import ayalaImg from '../images/ayala.jpg';
+import emallImg from '../images/emall.jpg';
 import BookingModal from './BookingModal';
 
 export default function ParkingLocations() {
@@ -9,6 +14,14 @@ export default function ParkingLocations() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [locations, setLocations] = useState([]);
+
+  const locationImages = {
+    'SM City Cebu': smcityImg,
+    'SM Mabolo': smmaboloImg,
+    'IT Park': itparkImg,
+    'Ayala Center Cebu': ayalaImg,
+    'E-Mall': emallImg
+  };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('parkingSlots')) || [];
@@ -88,9 +101,11 @@ export default function ParkingLocations() {
               onClick={() => setSelectedLocation(location)}
             >
               <div className="location-image-container">
-                <div className="location-image-placeholder">
-                  <span className="location-icon">🅿️</span>
-                </div>
+                <img 
+                  src={locationImages[location.name]} 
+                  alt={location.name}
+                  className="location-image"
+                />
                 <div
                   className="status-badge"
                   style={{ backgroundColor: getStatusColor(location) }}

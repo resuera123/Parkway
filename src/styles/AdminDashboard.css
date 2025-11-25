@@ -633,7 +633,7 @@
 
 .booking-row {
   display: grid;
-  grid-template-columns: 1.2fr 0.9fr 1fr 0.7fr 0.6fr 0.7fr 0.55fr;
+  grid-template-columns: 1.2fr .9fr 1fr .7fr .6fr .7fr .55fr .8fr;
   gap: 0.6rem;
   background: #f9f9f9;
   padding: 0.7rem 0.9rem;
@@ -794,52 +794,50 @@
 }
 
 .confirm-booking-btn {
-  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  background: linear-gradient(135deg,#4caf50,#388e3c);
   color: #fff;
   border: none;
-  padding: 0.45rem 0.9rem;
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-radius: 10px;
+  padding: .45rem .8rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: 0
+  font-weight: 700;
+  font-size: .6rem;
+  transition: .3s;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .5px;
 }
-  .admin-layout {
-    flex-direction: column;
-  }
 
-  .admin-sidebar {
-    flex-direction: row;
-    width: auto;
-    overflow-x: auto;
-  }
+.confirm-booking-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76,175,80,.35);
+}
 
-  .admin-nav {
-    flex-direction: row;
-  }
+.confirm-booking-btn:active {
+  transform: translateY(0);
+}
 
-  .admin-main {
-    padding: 1rem;
-  }
+.confirmed-text {
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: .6rem;
+  letter-spacing: .5px;
+}
 
-  .booking-row {
-    grid-template-columns: 1fr 0.9fr 0.9fr 0.7fr 0.7fr;
-  }
+.b-col.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  .b-col:nth-last-child(-n+2) {
-    display: none;
-  }
-
-
+/* Responsive Styles */
 @media (max-width: 900px) {
   .admin-sidebar {
     width: 170px;
   }
 
   .booking-row {
-    grid-template-columns: 1fr 0.9fr 0.9fr 0.7fr 0.7fr;
+    grid-template-columns: 1fr 0.9fr 0.9fr 0.7fr 0.6fr 0.7fr 0.55fr .8fr;
   }
 }
 
@@ -863,7 +861,7 @@
   }
 
   .booking-row {
-    grid-template-columns: 1fr 0.9fr 0.9fr 0.7fr 0.7fr;
+    grid-template-columns: 1fr 0.9fr 0.9fr 0.7fr 0.7fr .8fr;
   }
 
   .b-col:nth-last-child(-n+2) {

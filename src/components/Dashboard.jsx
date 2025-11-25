@@ -5,6 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { BsBusFrontFill } from "react-icons/bs";
 import BookingModal from './BookingModal';
 import mapImage from '../images/map.jpg';
+import smcityImg from '../images/smcity.jpg';
+import smmaboloImg from '../images/smmabolo.jpg';
+import itparkImg from '../images/itpark.jpeg';
+import ayalaImg from '../images/ayala.jpg';
+import emallImg from '../images/emall.jpg';
 
 export default function Dashboard() {
   const { logout } = useAuth();
@@ -113,6 +118,14 @@ export default function Dashboard() {
     setParkingSlots(slots);
   };
 
+  const parkingImages = {
+    'SM City Cebu': smcityImg,
+    'SM Mabolo': smmaboloImg,
+    'IT Park': itparkImg,
+    'Ayala Center Cebu': ayalaImg,
+    'E-Mall': emallImg
+  };
+
   const allParkingSlots = [
     {
       id: 1,
@@ -121,7 +134,7 @@ export default function Dashboard() {
       description: 'Good for motorcycle',
       distance: '2.3 KM',
       price: '$5/hr',
-      image: '🅿️'
+      image: smcityImg
     },
     {
       id: 2,
@@ -130,7 +143,7 @@ export default function Dashboard() {
       description: 'Good for motorcycle & vehicle',
       distance: '5 KM',
       price: '$4/hr',
-      image: '🅿️'
+      image: smmaboloImg
     },
     {
       id: 3,
@@ -139,7 +152,7 @@ export default function Dashboard() {
       description: 'Good for all vehicles',
       distance: '3.5 KM',
       price: '$6/hr',
-      image: '🅿️'
+      image: itparkImg
     },
     {
       id: 4,
@@ -148,7 +161,7 @@ export default function Dashboard() {
       description: 'Good for motorcycle & vehicle',
       distance: '4.2 KM',
       price: '$7/hr',
-      image: '🅿️'
+      image: ayalaImg
     },
     {
       id: 5,
@@ -157,7 +170,7 @@ export default function Dashboard() {
       description: 'Good for all vehicles',
       distance: '1.8 KM',
       price: '$5/hr',
-      image: '🅿️'
+      image: emallImg
     }
   ];
 
@@ -366,7 +379,13 @@ export default function Dashboard() {
                 {filteredSlots.length > 0 ? (
                   filteredSlots.map((slot) => (
                     <div key={slot.id} className="slot-card">
-                      <div className="slot-image">{slot.image}</div>
+                      <div className="slot-image-container">
+                        <img 
+                          src={slot.image} 
+                          alt={slot.name}
+                          className="slot-image-photo"
+                        />
+                      </div>
                       <div className="slot-info">
                         <h3>{slot.name}</h3>
                         <p className="slot-type">{slot.type}</p>
