@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import '../styles/ParkingLocations.css';
 import { useNavigate } from 'react-router-dom';
 import { BsBusFrontFill } from "react-icons/bs";
+import BookingModal from './BookingModal';
 
 export default function ParkingLocations() {
   const navigate = useNavigate();
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const parkingLocations = [
     {
@@ -83,6 +85,11 @@ export default function ParkingLocations() {
     }
   };
 
+  const handleBookNow = (location) => {
+    setSelectedLocation(location);
+    setShowBookingModal(true);
+  };
+
   return (
     <>
       <nav className="locations-navbar">
@@ -151,6 +158,7 @@ export default function ParkingLocations() {
                 <button 
                   className="book-btn"
                   disabled={location.status === 'full'}
+                  onClick={() => handleBookNow(location)}
                 >
                   {location.status === 'full' ? 'Not Available' : 'Book Now'}
                 </button>
@@ -159,6 +167,14 @@ export default function ParkingLocations() {
           ))}
         </div>
       </div>
+
+      {showBookingModal && selectedLocation && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          parkingSlot={selectedLocation}
+        />
+      )}
     </>
   );
 }
