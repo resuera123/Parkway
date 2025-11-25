@@ -174,8 +174,8 @@ export default function Profile() {
        <div className="profile-container">
          <div className="profile-wrapper">
            {/* Back Button */}
-           <button className="back-link" onClick={() => navigate('/dashboard')}>
-             ← Back to Dashboard
+           <button className="back-link" onClick={() => navigate(user?.role === 'admin' ? '/admin' : '/dashboard')}>
+             ← Back to {user?.role === 'admin' ? 'Admin' : 'Dashboard'}
            </button>
 
            {/* Profile Header */}

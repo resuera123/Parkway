@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { BsBusFrontFill } from "react-icons/bs";
 import BookingModal from './BookingModal';
+import mapImage from '../images/map.jpg';
 
 export default function Dashboard() {
   const { logout } = useAuth();
@@ -19,6 +20,7 @@ export default function Dashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [parkingSlots, setParkingSlots] = useState([]);
 
   // Load user from localStorage
   useEffect(() => {
@@ -29,6 +31,7 @@ export default function Dashboard() {
         setUser(userData);
         loadUserBookings(userData.username);
         loadNotifications(userData.username);
+        loadParkingSlots();
       } catch (err) {
         console.error('Error loading user:', err);
       }
@@ -105,6 +108,11 @@ export default function Dashboard() {
     }
   };
 
+  const loadParkingSlots = () => {
+    const slots = JSON.parse(localStorage.getItem('parkingSlots')) || [];
+    setParkingSlots(slots);
+  };
+
   const allParkingSlots = [
     {
       id: 1,
@@ -113,8 +121,7 @@ export default function Dashboard() {
       description: 'Good for motorcycle',
       distance: '2.3 KM',
       price: '$5/hr',
-      image: '🅿️',
-      available: 12
+      image: '🅿️'
     },
     {
       id: 2,
@@ -123,8 +130,7 @@ export default function Dashboard() {
       description: 'Good for motorcycle & vehicle',
       distance: '5 KM',
       price: '$4/hr',
-      image: '🅿️',
-      available: 8
+      image: '🅿️'
     },
     {
       id: 3,
@@ -133,8 +139,7 @@ export default function Dashboard() {
       description: 'Good for all vehicles',
       distance: '3.5 KM',
       price: '$6/hr',
-      image: '🅿️',
-      available: 15
+      image: '🅿️'
     },
     {
       id: 4,
@@ -143,8 +148,7 @@ export default function Dashboard() {
       description: 'Good for motorcycle & vehicle',
       distance: '4.2 KM',
       price: '$7/hr',
-      image: '🅿️',
-      available: 20
+      image: '🅿️'
     },
     {
       id: 5,
@@ -153,13 +157,21 @@ export default function Dashboard() {
       description: 'Good for all vehicles',
       distance: '1.8 KM',
       price: '$5/hr',
-      image: '🅿️',
-      available: 10
+      image: '🅿️'
     }
   ];
 
+  // Merge with real-time availability
+  const slotsWithAvailability = allParkingSlots.map(slot => {
+    const slotData = parkingSlots.find(s => s.name === slot.name);
+    return {
+      ...slot,
+      available: slotData ? `${slotData.bookedSlots}/${slotData.totalSlots}` : '0/10'
+    };
+  });
+
   // Filter parking slots based on search query and selected filter
-  const filteredSlots = allParkingSlots.filter(slot => {
+  const filteredSlots = slotsWithAvailability.filter(slot => {
     const matchesSearch = slot.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = selectedFilter === 'ALL' || 
                          (selectedFilter === 'MOTORCYCLE' && slot.description.toLowerCase().includes('motorcycle')) ||
@@ -248,6 +260,11 @@ export default function Dashboard() {
 
           <div className="user-info">
             <span className="username">Welcome, {user?.firstName || 'User'}</span>
+            {user?.role && (
+              <span className={`role-badge ${user.role}`}>
+                {user.role === 'admin' ? 'Admin' : 'User'}
+              </span>
+            )}
           </div>
           <div className="settings-container-nav">
             <div 
@@ -365,7 +382,7 @@ export default function Dashboard() {
                           </div>
                           <div className="slot-available">
                             <i className="bx bx-check-circle"></i>
-                            <span>{slot.available} slots</span>
+                            <span>{slot.available}</span>
                           </div>
                         </div>
                       </div>
@@ -391,10 +408,14 @@ export default function Dashboard() {
             <div className="right-section">
               <div className="map-container">
                 <div className="map-placeholder">
+                  <img 
+                    src={mapImage} 
+                    alt="Parking Locations Map" 
+                    className="map-image"
+                  />
                   <div className="map-marker marker-1">📍</div>
                   <div className="map-marker marker-2">📍</div>
                   <div className="map-marker marker-3">📍</div>
-                  <p className="map-text">Map View</p>
                 </div>
                 <button 
                   className="open-maps-btn"
@@ -424,7 +445,11 @@ export default function Dashboard() {
                     <div className="booking-header">
                       <h3>{booking.parkingSlot}</h3>
                       <span className={`status-badge ${booking.status}`}>
-                        {booking.status === 'confirmed' ? '✓ Confirmed' : '✕ Cancelled'}
+                        {booking.status === 'confirmed'
+                          ? '✓ Confirmed'
+                          : booking.status === 'cancelled'
+                          ? '✕ Cancelled'
+                          : '⏳ Pending'}
                       </span>
                     </div>
                     

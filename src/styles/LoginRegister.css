@@ -863,120 +863,124 @@ body {
   opacity: 0.8;
 }
 
-/* Role Select Modal (Global) */
+/* Role Selection */
+.role-selection {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+}
+
+.role-option {
+  flex: 1;
+  cursor: pointer;
+}
+
+.role-option input[type="radio"] {
+  display: none;
+}
+
+.role-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  transition: all 0.3s;
+  background: white;
+}
+
+.role-label i {
+  font-size: 2rem;
+  color: #667eea;
+}
+
+.role-option input[type="radio"]:checked + .role-label {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f0f8ff 0%, #e8f4f8 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.role-option input[type="radio"]:checked + .role-label i {
+  transform: scale(1.2);
+}
+
+.role-label:hover {
+  border-color: #667eea;
+  transform: translateY(-2px);
+}
+
+/* Minimal Overlay Styles */
 .role-select-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.65);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 3000;
-  animation: fadeInRole 0.3s ease;
+  z-index: 2000;
 }
-
-@keyframes fadeInRole {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .role-select-modal {
   background: #ffffff;
   width: 100%;
   max-width: 420px;
-  padding: 2.2rem 2.4rem 2rem;
-  border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-  position: relative;
-  animation: popInRole 0.35s cubic-bezier(.25,.8,.25,1);
+  padding: 2rem 2.2rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   text-align: center;
 }
-
-@keyframes popInRole {
-  0% { transform: scale(.85) translateY(10px); opacity: 0; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
-}
-
 .role-select-modal h2 {
-  margin: 0 0 0.4rem;
-  font-size: 1.55rem;
-  font-weight: 800;
-  letter-spacing: .5px;
-  background: linear-gradient(135deg,#667eea,#764ba2);
-  -webkit-background-clip: text;
-  color: transparent;
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  color: #333;
 }
-
-.role-select-modal .one-time-text {
-  font-weight: 600;
+.role-select-modal p {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1.5rem;
 }
-
-.role-select-modal .role-note {
-  font-size: .85rem;
-  color: #555;
-  margin-bottom: 1.4rem;
-  letter-spacing: .3px;
-}
-
 .role-select-buttons {
   display: flex;
   gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
   margin-bottom: 1.2rem;
+  flex-wrap: wrap;
 }
-
 .role-btn {
-  flex: 1 1 140px;
-  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
-  color: #fff;
+  flex: 1;
+  padding: 0.9rem 1rem;
   border: none;
-  padding: 0.8rem 1.6rem;
-  border-radius: 25px;
-  font-weight: 600;
+  border-radius: 14px;
+  font-weight: 700;
+  cursor: pointer;
   font-size: 0.9rem;
-  cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 6px 18px rgba(0,188,212,0.28);
-  position: relative;
+  color: #fff;
 }
-
-.role-btn:focus {
-  outline: 3px solid rgba(0,188,212,0.35);
-  outline-offset: 2px;
+.role-btn.user {
+  background: linear-gradient(135deg,#4caf50,#2e7d32);
 }
-
+.role-btn.admin {
+  background: linear-gradient(135deg,#ff9800,#f44336);
+}
 .role-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 26px rgba(0,188,212,0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
 }
-
-.role-btn:active {
-  transform: scale(0.97);
-}
-
-.role-cancel-btn {
-  background: #ececec;
-  color: #444;
+.role-cancel {
+  background: #eee;
   border: none;
-  padding: 0.65rem 1.4rem;
-  border-radius: 18px;
-  font-size: 0.75rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: .5px;
   cursor: pointer;
-  transition: all .25s;
+  color: #444;
+  transition: all 0.3s;
 }
-
-.role-cancel-btn:hover {
-  background: #dcdcdc;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-}
-
-.role-cancel-btn:active {
-  transform: translateY(0);
+.role-cancel:hover {
+  background: #ddd;
 }
 
 /* Responsive Breakpoints */
@@ -1150,29 +1154,4 @@ body {
 
 .open-maps-btn:active {
   transform: scale(0.98);
-}
-
-.user-info .role-badge {
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.35);
-  padding: 0.25rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  backdrop-filter: blur(4px);
-  margin-left: 0.4rem;
-}
-
-.user-info .role-badge.admin {
-  background: linear-gradient(135deg,#ff9800,#f44336);
-  color:#fff;
-  border:none;
-}
-
-.user-info .role-badge.user {
-  background: linear-gradient(135deg,#4caf50,#2e7d32);
-  color:#fff;
-  border:none;
 }

@@ -50,6 +50,7 @@ export default function Register() {
             lastName: formData.lastName,
             email: formData.email,
             password: formData.password
+            // role added later on first login
         });
 
         if (result.success) {
