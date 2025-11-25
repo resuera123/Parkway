@@ -8,6 +8,7 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Navbar */
@@ -21,58 +22,39 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  flex-wrap: wrap;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+  flex-shrink: 0;
 }
 
 .dashboard-logo-icon {
   font-size: 2rem;
-  color: #ffffff;
+  color: #00d4ff;
   text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 .logo {
-  font-size: 1.8rem;
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
   font-weight: bold;
   color: white;
   letter-spacing: 2px;
 }
 
-.navbar-center {
-  flex: 1;
-  margin: 0 2rem;
-}
-
-.search-input {
-  width: 100%;
-  max-width: 300px;
-  padding: 0.8rem 1.2rem;
-  border: none;
-  border-radius: 25px;
-  background: rgba(255, 255, 255, 0.95);
-  outline: none;
-  font-size: 0.95rem;
-  transition: all 0.3s;
-}
-
-.search-input:focus {
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: clamp(0.8rem, 2vw, 1.5rem);
   color: white;
+  flex-wrap: wrap;
 }
 
 .notification-icon {
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   cursor: pointer;
   transition: transform 0.3s;
 }
@@ -89,24 +71,7 @@ body {
 
 .username {
   font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.logout-btn {
-  background: white;
-  color: #0097a7;
-  border: none;
-  padding: 0.7rem 1.8rem;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s;
-  font-size: 0.95rem;
-}
-
-.logout-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
 }
 
 /* Navbar Settings */
@@ -115,7 +80,7 @@ body {
 }
 
 .settings-icon-nav {
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   cursor: pointer;
   transition: transform 0.3s;
   display: flex;
@@ -212,12 +177,12 @@ body {
 .dashboard-container {
   min-height: calc(100vh - 80px);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
 }
 
 .main-content {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -227,9 +192,9 @@ body {
 .left-section {
   background: rgba(255, 255, 255, 0.97);
   border-radius: 25px;
-  padding: 2.5rem;
-  position: relative;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
 }
 
 .parking-header {
@@ -237,7 +202,7 @@ body {
 }
 
 .parking-header h2 {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   color: #333;
   margin-bottom: 0.5rem;
   font-weight: 700;
@@ -245,7 +210,7 @@ body {
 
 .parking-header p {
   color: #666;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   font-weight: 500;
 }
 
@@ -254,6 +219,7 @@ body {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .filter-btn {
@@ -265,7 +231,8 @@ body {
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 2vw, 0.9rem);
+  white-space: nowrap;
 }
 
 .filter-btn.active,
@@ -296,6 +263,7 @@ body {
 .parking-search i {
   color: #00bcd4;
   font-size: 1.3rem;
+  flex-shrink: 0;
 }
 
 .parking-search input {
@@ -303,8 +271,10 @@ body {
   background: transparent;
   outline: none;
   flex: 1;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   color: #333;
+  width: 100%;
+  min-width: 0;
 }
 
 .parking-search input::placeholder {
@@ -316,7 +286,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
-  max-height: 450px;
+  max-height: calc(100vh - 500px);
+  min-height: 300px;
   overflow-y: auto;
   padding-right: 0.5rem;
 }
@@ -336,14 +307,15 @@ body {
 }
 
 .slot-card {
-  display: flex;
-  gap: 1.5rem;
-  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
   background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
   border-radius: 18px;
   border-left: 5px solid #00bcd4;
   transition: all 0.3s;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .slot-card:hover {
@@ -354,8 +326,8 @@ body {
 }
 
 .slot-image {
-  font-size: 3rem;
-  min-width: 70px;
+  font-size: clamp(2rem, 5vw, 3rem);
+  min-width: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -363,18 +335,20 @@ body {
 
 .slot-info {
   flex: 1;
+  min-width: 0;
+  width: 100%;
 }
 
 .slot-info h3 {
   color: #333;
-  font-size: 1.1rem;
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
   margin-bottom: 0.4rem;
   font-weight: 700;
 }
 
 .slot-type {
   color: #00bcd4;
-  font-size: 0.85rem;
+  font-size: clamp(0.8rem, 2vw, 0.85rem);
   font-weight: 600;
   background: rgba(0, 188, 212, 0.1);
   display: inline-block;
@@ -385,14 +359,15 @@ body {
 
 .slot-description {
   color: #666;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   margin: 0.4rem 0;
 }
 
 .slot-details {
   display: flex;
-  gap: 1.2rem;
+  gap: clamp(0.8rem, 2vw, 1.2rem);
   margin-top: 0.8rem;
+  flex-wrap: wrap;
 }
 
 .slot-distance,
@@ -402,7 +377,7 @@ body {
   align-items: center;
   gap: 0.4rem;
   color: #666;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 2vw, 0.9rem);
   font-weight: 500;
 }
 
@@ -416,24 +391,25 @@ body {
 .slot-action {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  min-width: fit-content;
 }
 
 .view-details-btn {
   background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
   color: white;
   border: none;
-  padding: 0.8rem 1.8rem;
+  padding: clamp(0.6rem, 1.5vw, 0.8rem) clamp(1.2rem, 3vw, 1.8rem);
   border-radius: 25px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: clamp(0.8rem, 1.8vw, 0.95rem);
   transition: all 0.3s;
   white-space: nowrap;
 }
 
 .view-details-btn:hover {
-  transform: scale(1.08);
+  transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(0, 188, 212, 0.35);
 }
 
@@ -441,99 +417,16 @@ body {
   transform: scale(0.98);
 }
 
-/* Settings Icon */
-.settings-container {
-  position: absolute;
-  bottom: 2rem;
-  left: 2.5rem;
+/* No Results */
+.no-results {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #999;
 }
 
-.settings-icon {
-  width: 55px;
-  height: 55px;
-  background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.settings-icon:hover {
-  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
-  transform: rotate(90deg);
-  box-shadow: 0 8px 20px rgba(0, 188, 212, 0.3);
-}
-
-.settings-icon i {
-  font-size: 1.8rem;
-  color: #333;
-}
-
-.settings-icon:hover i {
-  color: white;
-}
-
-/* Settings Menu */
-.settings-menu {
-  position: absolute;
-  bottom: 70px;
-  left: 0;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  min-width: 200px;
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.settings-option {
-  width: 100%;
-  padding: 1rem 1.5rem;
-  background: white;
-  border: none;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  transition: all 0.3s;
-  text-align: left;
-  font-size: 1rem;
-  color: #333;
-  font-weight: 500;
-}
-
-.settings-option:last-child {
-  border-bottom: none;
-}
-
-.settings-option:hover {
-  background: linear-gradient(135deg, #f0f8ff 0%, #e8f4f8 100%);
-  padding-left: 2rem;
-  color: #00bcd4;
-}
-
-.settings-option i {
-  font-size: 1.3rem;
-  color: #00bcd4;
-}
-
-.settings-option:hover i {
-  transform: scale(1.1);
+.no-results p {
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
+  color: #666;
 }
 
 /* Right Section - Map */
@@ -546,14 +439,14 @@ body {
 .map-container {
   background: rgba(255, 255, 255, 0.97);
   border-radius: 25px;
-  padding: 2.5rem;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
 }
 
 .map-placeholder {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: clamp(250px, 50vw, 400px);
   background: linear-gradient(135deg, #e8e8e8 0%, #f5f5f5 100%);
   border-radius: 18px;
   display: flex;
@@ -565,7 +458,7 @@ body {
 
 .map-marker {
   position: absolute;
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   cursor: pointer;
   animation: pulse 2s infinite;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
@@ -597,7 +490,7 @@ body {
 
 .map-text {
   color: #999;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 3vw, 1.2rem);
   font-weight: 600;
 }
 
@@ -608,7 +501,7 @@ body {
   color: white;
   border: none;
   border-radius: 25px;
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
@@ -625,63 +518,140 @@ body {
   transform: translateY(-1px);
 }
 
-/* No Results Message */
-.no-results {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #999;
-}
-
-.no-results p {
-  font-size: 1.1rem;
-  color: #666;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
+/* Responsive Breakpoints */
+@media (min-width: 1024px) {
   .main-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
+  
+  .slots-list {
+    max-height: calc(100vh - 450px);
+  }
+}
 
+@media (max-width: 1023px) {
+  .navbar {
+    padding: 1rem;
+  }
+  
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .main-content {
+    gap: 1.5rem;
+  }
+  
   .map-placeholder {
     height: 300px;
+  }
+  
+  .slots-list {
+    max-height: 500px;
   }
 }
 
 @media (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-    gap: 1rem;
+  .navbar-right {
+    gap: 0.8rem;
   }
-
-  .navbar-center {
-    margin: 0;
-    width: 100%;
+  
+  .username {
+    display: none;
   }
-
-  .search-input {
-    max-width: none;
-  }
-
+  
   .filter-buttons {
-    flex-wrap: wrap;
+    gap: 0.5rem;
   }
-
-  .left-section {
-    padding: 1.5rem;
+  
+  .filter-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.8rem;
   }
-
+  
+  .slot-card {
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
   .slot-details {
     flex-wrap: wrap;
+    gap: 0.8rem;
   }
-
+  
   .slot-action {
+    grid-column: 1 / -1;
     width: 100%;
-    margin-top: 1rem;
   }
-
+  
   .view-details-btn {
     width: 100%;
+    max-width: none;
+  }
+  
+  .slots-list {
+    max-height: calc(100vh - 550px);
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0.8rem;
+  }
+  
+  .navbar-left {
+    gap: 0.5rem;
+  }
+  
+  .dashboard-logo-icon {
+    font-size: 1.5rem;
+  }
+  
+  .notification-icon {
+    font-size: 1.2rem;
+  }
+  
+  .settings-menu-nav {
+    min-width: 180px;
+    right: -10px;
+  }
+  
+  .filter-buttons {
+    flex-direction: column;
+  }
+  
+  .filter-btn {
+    width: 100%;
+  }
+  
+  .slot-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .slot-image {
     justify-content: center;
+  }
+  
+  .slot-details {
+    justify-content: center;
+  }
+  
+  .slots-list {
+    max-height: calc(100vh - 600px);
+  }
+}
+
+@media (min-height: 900px) {
+  .slots-list {
+    max-height: 600px;
+  }
+}
+
+@media (max-height: 700px) {
+  .slots-list {
+    max-height: 300px;
   }
 }

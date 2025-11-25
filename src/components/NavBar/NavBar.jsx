@@ -7,6 +7,7 @@ export default function NavBar() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
+    
 
     const isAuthPage = location.pathname === '/' || location.pathname === '/register';
     const isDashboard = location.pathname === '/dashboard';
