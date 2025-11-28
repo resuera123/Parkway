@@ -28,16 +28,24 @@ export default function AdminDashboard() {
 
   const initParkingSlots = () => {
     let stored = JSON.parse(localStorage.getItem('parkingSlots'));
+    const priceMap = {
+      'SM City Cebu': '$30/hr',
+      'SM Mabolo': '$20/hr',
+      'IT Park': '$15/hr',
+      'Ayala Center Cebu': '$20/hr',
+      'E-Mall': '$25/hr'
+    };
+
     if (!stored || !Array.isArray(stored) || stored.length === 0) {
       stored = [
-        { id: 1, name: 'SM City Cebu', totalSlots: 10, bookedSlots: 0, status: 'available' },
-        { id: 2, name: 'SM Mabolo', totalSlots: 10, bookedSlots: 0, status: 'available' },
-        { id: 3, name: 'IT Park', totalSlots: 10, bookedSlots: 0, status: 'available' },
-        { id: 4, name: 'Ayala Center Cebu', totalSlots: 10, bookedSlots: 0, status: 'available' },
-        { id: 5, name: 'E-Mall', totalSlots: 10, bookedSlots: 0, status: 'available' }
+        { id: 1, name: 'SM City Cebu', totalSlots: 10, bookedSlots: 0, status: 'available', price: priceMap['SM City Cebu'] },
+        { id: 2, name: 'SM Mabolo', totalSlots: 10, bookedSlots: 0, status: 'available', price: priceMap['SM Mabolo'] },
+        { id: 3, name: 'IT Park', totalSlots: 10, bookedSlots: 0, status: 'available', price: priceMap['IT Park'] },
+        { id: 4, name: 'Ayala Center Cebu', totalSlots: 10, bookedSlots: 0, status: 'available', price: priceMap['Ayala Center Cebu'] },
+        { id: 5, name: 'E-Mall', totalSlots: 10, bookedSlots: 0, status: 'available', price: priceMap['E-Mall'] }
       ];
     }
-    // migrate every record to 10 slots & recompute bookedSlots
+    // migrate every record to 10 slots & recompute bookedSlots, ensure price
     stored = stored.map(p => {
       const key = `slotStatuses_${p.id}`;
       let statuses = JSON.parse(localStorage.getItem(key));
@@ -50,7 +58,7 @@ export default function AdminDashboard() {
         localStorage.setItem(key, JSON.stringify(statuses));
       }
       const bookedCount = statuses.filter(s => s.reserved).length;
-      return { ...p, totalSlots: 10, bookedSlots: bookedCount };
+      return { ...p, totalSlots: 10, bookedSlots: bookedCount, price: p.price ?? priceMap[p.name] ?? '$0/hr' };
     });
     localStorage.setItem('parkingSlots', JSON.stringify(stored));
     setParkingSlots(stored);
@@ -291,12 +299,6 @@ export default function AdminDashboard() {
                       <p>{n.message}</p>
                       <small>{new Date(n.timestamp).toLocaleString()}</small>
                     </div>
-                    {!n.status && (
-                      <button
-                        className="approve-btn"
-                        onClick={() => handleApproveBooking(n.id, n.bookingId)}
-                      >Approve</button>
-                    )}
                     {n.status === 'approved' && (
                       <span className="approved-badge">✓ Approved</span>
                     )}

@@ -174,12 +174,13 @@ export default function Dashboard() {
     }
   ];
 
-  // Merge with real-time availability
+  // Merge with real-time availability and price from stored parkingSlots
   const slotsWithAvailability = allParkingSlots.map(slot => {
     const slotData = parkingSlots.find(s => s.name === slot.name);
     return {
       ...slot,
-      available: slotData ? `${slotData.bookedSlots}/${slotData.totalSlots}` : '0/10'
+      available: slotData ? `${slotData.bookedSlots}/${slotData.totalSlots}` : '0/10',
+      price: slotData?.price ?? slot.price ?? '$0/hr'
     };
   });
 
