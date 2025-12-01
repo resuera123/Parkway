@@ -22,6 +22,12 @@
   margin-bottom: 3rem;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+}
+
 .admin-header h1 {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
@@ -358,24 +364,34 @@
 
 .admin-user-mini {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  color: #fff;
   gap: 0.3rem;
-  font-size: 0.7rem;
+  font-size: 1rem;
   opacity: 0.8;
+  margin-right: 30px;
+}
+
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 1rem;
 }
 
 .role-tag {
   background: linear-gradient(135deg, #ff9800, #f44336);
   padding: 0.2rem 0.5rem;
   border-radius: 8px;
-  font-size: 0.55rem;
+  color: #fff;
+  font-size: 0.8rem;
   font-weight: 700;
+  margin-left: 3px;
   letter-spacing: 0.5px;
   align-self: flex-start;
 }
 
 .admin-topbar {
-  flex: 1;
   height: 60px;
   display: flex;
   justify-content: flex-end;
@@ -384,6 +400,12 @@
   position: sticky;
   top: 0;
   z-index: 50;
+}
+
+.spaces-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 .admin-main {
@@ -538,7 +560,7 @@
 }
 
 .loc-btn:hover {
-  background: #eaeaea;
+  transform: translateY(-4px);
 }
 
 .loc-count {

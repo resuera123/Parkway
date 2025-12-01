@@ -878,261 +878,264 @@ export default function AdminDashboard() {
             onClick={handleLogout}
           >Logout</button>
         </nav>
-        <div className="admin-user-mini">
-          <span>{adminUser?.firstname || 'Admin'}</span>
-          <span className="role-tag">Admin</span>
-        </div>
+        
       </aside>
 
       {/* Top bar */}
-      <header className="admin-topbar">
-        <div className="topbar-right">
-          <div
-            className="notification-icon-container"
-            onClick={() => setShowNotifications(!showNotifications)}
-          >
-            <div className="notification-icon">🔔</div>
-            {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
-          </div>
-          {showNotifications && (
-            <div className="notifications-dropdown">
-              <div className="notifications-header">
-                <h3>Booking Requests</h3>
-              </div>
-              <div className="notifications-list">
-                {adminNotifications.length ? adminNotifications.map(n => (
-                  <div
-                    key={n.notification_id || n.id}
-                    className={`notification-item ${n.read ? 'read' : 'unread'}`}
-                  >
-                    <div className="notification-content">
-                      <h4>New Booking Request</h4>
-                      <p><strong>{n.user_name}</strong> requested booking at <strong>{n.parking_lot_name}</strong></p>
-                      <p>Date: {n.date_reserved} | Time: {n.time_in} - {n.time_out}</p>
-                      <small>{new Date(n.created_at || n.timestamp).toLocaleString()}</small>
+      <div className="admin-content">
+        <header className="admin-topbar">
+          <div className="topbar-right">
+            <div className="admin-user-mini">
+              <span>{adminUser?.firstname || 'Admin'}</span>
+              <span className="role-tag">Admin</span>
+            </div>
+            <div
+              className="notification-icon-container"
+              onClick={() => setShowNotifications(!showNotifications)}
+            > 
+              <div className="notification-icon">🔔</div>
+              {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+            </div>
+            {showNotifications && (
+              <div className="notifications-dropdown">
+                <div className="notifications-header">
+                  <h3>Booking Requests</h3>
+                </div>
+                <div className="notifications-list">
+                  {adminNotifications.length ? adminNotifications.map(n => (
+                    <div
+                      key={n.notification_id || n.id}
+                      className={`notification-item ${n.read ? 'read' : 'unread'}`}
+                    >
+                      <div className="notification-content">
+                        <h4>New Booking Request</h4>
+                        <p><strong>{n.user_name}</strong> requested booking at <strong>{n.parking_lot_name}</strong></p>
+                        <p>Date: {n.date_reserved} | Time: {n.time_in} - {n.time_out}</p>
+                        <small>{new Date(n.created_at || n.timestamp).toLocaleString()}</small>
+                      </div>
+                      {!n.read && (
+                        <button
+                          className="mark-read-btn"
+                          onClick={() => markNotificationAsRead(n.notification_id || n.id)}
+                        >Mark Read</button>
+                      )}
                     </div>
-                    {!n.read && (
-                      <button
-                        className="mark-read-btn"
-                        onClick={() => markNotificationAsRead(n.notification_id || n.id)}
-                      >Mark Read</button>
-                    )}
+                  )) : <div className="no-notifications"><p>No booking requests</p></div>}
+                </div>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main className="admin-main">
+          {activeSection === 'overview' && (
+            <div className="section-block overview-left">
+              <h2 className="section-title">Parking Lot Overview</h2>
+              <div className="slots-grid-overview">
+                {parkingSlots.map(slot => (
+                  <div
+                    key={slot.id}
+                    className="overview-card clickable-overview"
+                    onClick={() => {
+                      setSelectedLocationId(slot.id);
+                      loadLocationSlotStatuses(slot.id);
+                      setActiveSection('spaces');
+                    }}
+                  >
+                    <div className="overview-top">
+                      <h3>{slot.name}</h3>
+                      <span className={`status-indicator ${slot.bookedSlots >= slot.totalSlots ? 'full' : 'available'}`}>
+                        {slot.bookedSlots >= slot.totalSlots ? 'Full' : 'Available'}
+                      </span>
+                    </div>
+                    <div className="overview-stats">
+                      <div><span>Total:</span> {slot.totalSlots}</div>
+                      <div><span>Booked:</span> {slot.bookedSlots}</div>
+                      <div><span>Vacant:</span> {slot.totalSlots - slot.bookedSlots}</div>
+                    </div>
+                    <div className="progress-bar">
+                      <div
+                        className="progress-fill"
+                        style={{ width: `${(slot.bookedSlots / slot.totalSlots) * 100}%` }}
+                      />
+                    </div>
+                    <p className="occupancy-text">{slot.bookedSlots}/{slot.totalSlots} slots occupied</p>
                   </div>
-                )) : <div className="no-notifications"><p>No booking requests</p></div>}
+                ))}
               </div>
             </div>
           )}
-        </div>
-      </header>
 
-      <main className="admin-main">
-        {activeSection === 'overview' && (
-          <div className="section-block overview-left">
-            <h2 className="section-title">Parking Lot Overview</h2>
-            <div className="slots-grid-overview">
-              {parkingSlots.map(slot => (
-                <div
-                  key={slot.id}
-                  className="overview-card clickable-overview"
-                  onClick={() => {
-                    setSelectedLocationId(slot.id);
-                    loadLocationSlotStatuses(slot.id);
-                    setActiveSection('spaces');
-                  }}
-                >
-                  <div className="overview-top">
-                    <h3>{slot.name}</h3>
-                    <span className={`status-indicator ${slot.bookedSlots >= slot.totalSlots ? 'full' : 'available'}`}>
-                      {slot.bookedSlots >= slot.totalSlots ? 'Full' : 'Available'}
-                    </span>
+          {activeSection === 'bookings' && (
+            <div className="section-block">
+              <h2 className="section-title">All Bookings</h2>
+              <div className="booking-list-admin">
+                {bookings.length ? bookings.map(b => (
+                  <div key={b.booking_id || b.id} className="booking-row">
+                    <div className="b-col main">
+                      <strong>{b.parking_lot_name || 'N/A'}</strong>
+                      <small>{b.user_firstname} {b.user_lastname}</small>
+                      <small>{new Date(b.created_at).toLocaleString()}</small>
+                    </div>
+                    <div className="b-col">{b.date_reserved}</div>
+                    <div className="b-col">{b.time_in} - {b.time_out}</div>
+                    <div className="b-col">{b.vehicle_type}</div>
+                    <div className="b-col">{b.duration}h</div>
+                    <div className="b-col">₱{parseFloat(b.total_price).toFixed(2)}</div>
+                    <div className="b-col status">
+                      <span className={`mini-status ${b.status}`}>{b.status}</span>
+                    </div>
+                    <div className="b-col actions">
+                      {b.status === 'pending' && (
+                        <>
+                          <button 
+                            className="confirm-booking-btn"
+                            onClick={() => handleConfirmBooking(b.booking_id || b.id)}
+                          >
+                            Confirm
+                          </button>
+                          <button 
+                            className="delete-booking-btn"
+                            onClick={() => handleDeleteBooking(b.booking_id || b.id)}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                      {b.status === 'confirmed' && (
+                        <>
+                          <span className="confirmed-text">✓ Confirmed</span>
+                          <button 
+                            className="delete-booking-btn"
+                            onClick={() => handleDeleteBooking(b.booking_id || b.id)}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="overview-stats">
-                    <div><span>Total:</span> {slot.totalSlots}</div>
-                    <div><span>Booked:</span> {slot.bookedSlots}</div>
-                    <div><span>Vacant:</span> {slot.totalSlots - slot.bookedSlots}</div>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${(slot.bookedSlots / slot.totalSlots) * 100}%` }}
-                    />
-                  </div>
-                  <p className="occupancy-text">{slot.bookedSlots}/{slot.totalSlots} slots occupied</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeSection === 'bookings' && (
-          <div className="section-block">
-            <h2 className="section-title">All Bookings</h2>
-            <div className="booking-list-admin">
-              {bookings.length ? bookings.map(b => (
-                <div key={b.booking_id || b.id} className="booking-row">
-                  <div className="b-col main">
-                    <strong>{b.parking_lot_name || 'N/A'}</strong>
-                    <small>{b.user_firstname} {b.user_lastname}</small>
-                    <small>{new Date(b.created_at).toLocaleString()}</small>
-                  </div>
-                  <div className="b-col">{b.date_reserved}</div>
-                  <div className="b-col">{b.time_in} - {b.time_out}</div>
-                  <div className="b-col">{b.vehicle_type}</div>
-                  <div className="b-col">{b.duration}h</div>
-                  <div className="b-col">₱{parseFloat(b.total_price).toFixed(2)}</div>
-                  <div className="b-col status">
-                    <span className={`mini-status ${b.status}`}>{b.status}</span>
-                  </div>
-                  <div className="b-col actions">
-                    {b.status === 'pending' && (
-                      <>
-                        <button 
-                          className="confirm-booking-btn"
-                          onClick={() => handleConfirmBooking(b.booking_id || b.id)}
-                        >
-                          Confirm
-                        </button>
-                        <button 
-                          className="delete-booking-btn"
-                          onClick={() => handleDeleteBooking(b.booking_id || b.id)}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
-                    {b.status === 'confirmed' && (
-                      <>
-                        <span className="confirmed-text">✓ Confirmed</span>
-                        <button 
-                          className="delete-booking-btn"
-                          onClick={() => handleDeleteBooking(b.booking_id || b.id)}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )) : <div className="empty-text">No bookings recorded.</div>}
-            </div>
-          </div>
-        )}
-
-        {activeSection === 'spaces' && (
-          <div className="section-block">
-            <h2 className="section-title">Parking Spaces</h2>
-            <div className="location-selector">
-              {parkingSlots.map(loc => (
-                <button
-                  key={loc.id}
-                  className={`loc-btn ${selectedLocationId === loc.id ? 'active' : ''}`}
-                  onClick={() => handleSelectLocation(loc.id)}
-                >
-                  {loc.name}
-                  <span className="loc-count">{loc.bookedSlots}/{loc.totalSlots}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="parking-spaces-info">
-              <p className="instruction-text">
-                💡 <strong>Click on any parking slot</strong> to toggle between vacant (green) and occupied (red)
-              </p>
-              <div className="pending-info">
-                <span>
-                  Occupied: {
-                    locationSlots.filter(s => s.reserved).length
-                  } / {
-                    parkingSlots.find(p => p.id === selectedLocationId)?.totalSlots || locationSlots.length
-                  }
-                </span>
-                <span>
-                  Vacant: {
-                    locationSlots.filter(s => !s.reserved).length
-                  } / {
-                    parkingSlots.find(p => p.id === selectedLocationId)?.totalSlots || locationSlots.length
-                  }
-                </span>
-                {locationSlots.filter(s => s.reserved).length === locationSlots.length && (
-                  <span className="full-indicator">FULL - No vacant slots</span>
-                )}
+                )) : <div className="empty-text">No bookings recorded.</div>}
               </div>
             </div>
+          )}
 
-            <div className="spaces-grid">
-              {locationSlots.map((slot, index) => {
-                // Find confirmed bookings for this parking lot
-                const confirmedBookings = bookings.filter(b => 
-                  b.parking_lot_id === selectedLocationId && b.status === 'confirmed'
-                );
-                
-                // Assign booking to slot based on index (first confirmed booking to first occupied slot, etc.)
-                const occupiedSlots = locationSlots.filter(s => s.reserved);
-                const occupiedIndex = occupiedSlots.findIndex(s => s.slotNumber === slot.slotNumber);
-                const slotBooking = slot.reserved && occupiedIndex >= 0 && confirmedBookings[occupiedIndex] 
-                  ? confirmedBookings[occupiedIndex] 
-                  : null;
-                
-                return (
-                  <div
-                    key={`${selectedLocationId}-slot-${slot.slotNumber}-${index}`}
-                    className={`slot-cell ${slot.reserved ? 'reserved' : 'vacant'}`}
-                    onClick={() => toggleSlot(slot.slotNumber)}
-                    title={
-                      slot.reserved && slotBooking 
-                        ? `P${slot.slotNumber} - ${slotBooking.user_firstname || 'User'} ${slotBooking.user_lastname || ''}\n${slotBooking.vehicle_type || 'Vehicle'} - ${slotBooking.vehicle_model || slotBooking.model || 'N/A'}\nPlate: ${slotBooking.plate_number || slotBooking.plateNumber || 'N/A'}`
-                        : `Click to ${slot.reserved ? 'free' : 'reserve'} P${slot.slotNumber}`
-                    }
+          {activeSection === 'spaces' && (
+            <div className="section-block">
+              <h2 className="section-title">Parking Spaces</h2>
+              <div className="location-selector">
+                {parkingSlots.map(loc => (
+                  <button
+                    key={loc.id}
+                    className={`loc-btn ${selectedLocationId === loc.id ? 'active' : ''}`}
+                    onClick={() => handleSelectLocation(loc.id)}
                   >
-                    <div className="slot-number">P{slot.slotNumber}</div>
-                    {slot.reserved && slotBooking && (
-                      <div className="slot-booking-info">
-                        <div className="slot-user">{slotBooking.user_firstname || slotBooking.firstname} {slotBooking.user_lastname || slotBooking.lastname}</div>
-                        <div className="slot-vehicle">{slotBooking.vehicle_type || 'Vehicle'}</div>
-                        <div className="slot-model">{slotBooking.vehicle_model || slotBooking.model || 'N/A'}</div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                    {loc.name}
+                    <span className="loc-count">{loc.bookedSlots}/{loc.totalSlots}</span>
+                  </button>
+                ))}
+              </div>
 
-            <div className="spaces-actions">
-              <button
-                className="update-spaces-btn"
-                onClick={() => {
-                  loadLocationSlotStatuses(selectedLocationId);
-                  initParkingSlots();
-                }}
-              >
-                Refresh Slots
-              </button>
-            </div>
-
-            <div className="legend">
-              <span className="legend-item"><span className="legend-box vacant-box" /> Vacant</span>
-              <span className="legend-item"><span className="legend-box reserved-box" /> Reserved</span>
-            </div>
-          </div>
-        )}
-
-        {activeSection === 'reports' && (
-          <div className="section-block">
-            <h2 className="section-title">Monthly Report ({currentMonthKey})</h2>
-            <div className="report-grid">
-              {monthlyReport.map(r => (
-                <div key={r.id} className="report-card">
-                  <h3>{r.name}</h3>
-                  <div className="report-line"><span>Bookings:</span> {r.count}</div>
-                  <div className="report-line"><span>Total Revenue:</span> ₱{r.revenue}</div>
-                  <div className="report-line"><span>Avg Duration:</span> {r.avgDuration} hrs</div>
-                  <div className="report-line"><span>Occupancy:</span> {parkingSlots.find(p => p.id === r.id)?.bookedSlots}/{parkingSlots.find(p => p.id === r.id)?.totalSlots}</div>
+              <div className="parking-spaces-info">
+                <p className="instruction-text">
+                  💡 <strong>Click on any parking slot</strong> to toggle between vacant (green) and occupied (red)
+                </p>
+                <div className="pending-info">
+                  <span>
+                    Occupied: {
+                      locationSlots.filter(s => s.reserved).length
+                    } / {
+                      parkingSlots.find(p => p.id === selectedLocationId)?.totalSlots || locationSlots.length
+                    }
+                  </span>
+                  <span>
+                    Vacant: {
+                      locationSlots.filter(s => !s.reserved).length
+                    } / {
+                      parkingSlots.find(p => p.id === selectedLocationId)?.totalSlots || locationSlots.length
+                    }
+                  </span>
+                  {locationSlots.filter(s => s.reserved).length === locationSlots.length && (
+                    <span className="full-indicator">FULL - No vacant slots</span>
+                  )}
                 </div>
-              ))}
+              </div>
+
+              <div className="spaces-grid">
+                {locationSlots.map((slot, index) => {
+                  // Find confirmed bookings for this parking lot
+                  const confirmedBookings = bookings.filter(b => 
+                    b.parking_lot_id === selectedLocationId && b.status === 'confirmed'
+                  );
+                  
+                  // Assign booking to slot based on index (first confirmed booking to first occupied slot, etc.)
+                  const occupiedSlots = locationSlots.filter(s => s.reserved);
+                  const occupiedIndex = occupiedSlots.findIndex(s => s.slotNumber === slot.slotNumber);
+                  const slotBooking = slot.reserved && occupiedIndex >= 0 && confirmedBookings[occupiedIndex] 
+                    ? confirmedBookings[occupiedIndex] 
+                    : null;
+                  
+                  return (
+                    <div
+                      key={`${selectedLocationId}-slot-${slot.slotNumber}-${index}`}
+                      className={`slot-cell ${slot.reserved ? 'reserved' : 'vacant'}`}
+                      onClick={() => toggleSlot(slot.slotNumber)}
+                      title={
+                        slot.reserved && slotBooking 
+                          ? `P${slot.slotNumber} - ${slotBooking.user_firstname || 'User'} ${slotBooking.user_lastname || ''}\n${slotBooking.vehicle_type || 'Vehicle'} - ${slotBooking.vehicle_model || slotBooking.model || 'N/A'}\nPlate: ${slotBooking.plate_number || slotBooking.plateNumber || 'N/A'}`
+                          : `Click to ${slot.reserved ? 'free' : 'reserve'} P${slot.slotNumber}`
+                      }
+                    >
+                      <div className="slot-number">P{slot.slotNumber}</div>
+                      {slot.reserved && slotBooking && (
+                        <div className="slot-booking-info">
+                          <div className="slot-user">{slotBooking.user_firstname || slotBooking.firstname} {slotBooking.user_lastname || slotBooking.lastname}</div>
+                          <div className="slot-vehicle">{slotBooking.vehicle_type || 'Vehicle'}</div>
+                          <div className="slot-model">{slotBooking.vehicle_model || slotBooking.model || 'N/A'}</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="spaces-actions">
+                <button
+                  className="update-spaces-btn"
+                  onClick={() => {
+                    loadLocationSlotStatuses(selectedLocationId);
+                    initParkingSlots();
+                  }}
+                >
+                  Refresh Slots
+                </button>
+              </div>
+
+              <div className="legend">
+                <span className="legend-item"><span className="legend-box vacant-box" /> Vacant</span>
+                <span className="legend-item"><span className="legend-box reserved-box" /> Reserved</span>
+              </div>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+
+          {activeSection === 'reports' && (
+            <div className="section-block">
+              <h2 className="section-title">Monthly Report ({currentMonthKey})</h2>
+              <div className="report-grid">
+                {monthlyReport.map(r => (
+                  <div key={r.id} className="report-card">
+                    <h3>{r.name}</h3>
+                    <div className="report-line"><span>Bookings:</span> {r.count}</div>
+                    <div className="report-line"><span>Total Revenue:</span> ₱{r.revenue}</div>
+                    <div className="report-line"><span>Avg Duration:</span> {r.avgDuration} hrs</div>
+                    <div className="report-line"><span>Occupancy:</span> {parkingSlots.find(p => p.id === r.id)?.bookedSlots}/{parkingSlots.find(p => p.id === r.id)?.totalSlots}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
