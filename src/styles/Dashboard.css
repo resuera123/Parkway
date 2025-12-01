@@ -741,6 +741,93 @@ body {
   gap: 1.5rem;
 }
 
+/* Bookings Table */
+.bookings-table-container {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow-x: auto;
+}
+
+.bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.bookings-table thead {
+  background: linear-gradient(90deg, #00bcd4 0%, #0097a7 100%);
+  color: white;
+}
+
+.bookings-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bookings-table th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.bookings-table th:last-child {
+  border-top-right-radius: 10px;
+}
+
+.bookings-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.3s;
+}
+
+.bookings-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.bookings-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.bookings-table td {
+  padding: 1rem;
+  color: #333;
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.bookings-table .status-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.bookings-table .cancel-booking-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.bookings-table .cancel-booking-btn:hover {
+  background: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
 .booking-card {
   background: white;
   border-radius: 20px;
@@ -847,6 +934,30 @@ body {
 .cancel-booking-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(244, 67, 54, 0.3);
+}
+
+.delete-booking-btn-user {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.delete-booking-btn-user:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.35);
+}
+
+.delete-booking-btn-user:active {
+  transform: translateY(0);
 }
 
 .booking-footer {

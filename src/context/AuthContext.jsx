@@ -7,30 +7,145 @@ export function AuthProvider({ children }) {
     try { return JSON.parse(localStorage.getItem('currentUser')) || null; } catch { return null; }
   });
 
-  const login = (username, password) => {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const foundUser = users.find(u => u.username === username && u.password === password);
-    if (foundUser) {
-      // Keep any existing role (admin or user) – do not overwrite
-      const userObj = { ...foundUser };
+  const login = async (email, password) => {
+    try {
+      const response = await fetch('http://localhost:8080/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, message: data.message || 'Invalid email or password' };
+      }
+
+      // Store user data in localStorage and state
+      const userObj = {
+        id: data.userID || data.id || data.user_id || data.userId || data.staffID,
+        email: data.email,
+        firstname: data.firstname,
+        lastname: data.lastname,
+        role: data.role || null
+      };
+      
+      console.log('Login response data:', data);
+      console.log('Created user object:', userObj);
+      
       localStorage.setItem('currentUser', JSON.stringify(userObj));
       setUser(userObj);
       return { success: true, user: userObj };
+    } catch (error) {
+      return { success: false, message: 'Network error. Please try again.' };
     }
-    return { success: false, message: 'Invalid username or password' };
   };
 
-  const register = (userData) => {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    if (users.find(u => u.username === userData.username)) {
-      return { success: false, message: 'Username already exists' };
+  const register = async (userData) => {
+    console.log('Registering user:', userData);
+    try {
+      const response = await fetch('http://localhost:8080/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstname: userData.firstname,
+          lastname: userData.lastname,
+          email: userData.email,
+          password: userData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, message: data.message || 'Registration failed' };
+      }
+
+      return { success: true, message: 'Registration successful' };
+    } catch (error) {
+      return { success: false, message: 'Network error. Please try again.' };
     }
-    if (users.find(u => u.email === userData.email)) {
-      return { success: false, message: 'Email already registered' };
+  };
+
+  const createAdminParkingLot = async (adminData) => {
+    console.log('Creating admin parking lot with data:', adminData);
+    
+    // Prepare request body with all possible field name variations
+    const requestBody = {
+      // User identification
+      user_id: adminData.user_id,
+      userId: adminData.user_id,
+      
+      // Email (both formats)
+      email: adminData.email,
+      
+      // Password (multiple formats to ensure backend receives it)
+      password: adminData.password,
+      Password: adminData.password,
+      
+      // First name
+      firstname: adminData.firstname,
+      firstName: adminData.firstname,
+      first_name: adminData.firstname,
+      
+      // Last name
+      lastname: adminData.lastname,
+      lastName: adminData.lastname,
+      last_name: adminData.lastname,
+      
+      // Parking lot name
+      parkingLotName: adminData.parking_lot_name,
+      parking_lot_name: adminData.parking_lot_name,
+      
+      // Capacity
+      capacity: adminData.capacity,
+      
+      // Price/Rate
+      price: adminData.price,
+      rate: adminData.price,
+      
+      // Role
+      role: 'admin',
+      Role: 'admin'
+    };
+    
+    console.log('Request body being sent:', requestBody);
+    
+    try {
+      const response = await fetch('http://localhost:8080/api/admins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      console.log('Server response status:', response.status);
+      console.log('Server response data:', data);
+
+      if (!response.ok) {
+        console.error('Failed to create parking lot:', data);
+        return { success: false, message: data.message || 'Failed to create admin parking lot' };
+      }
+
+      // Don't update user.id - keep it as user_id, not staff_id
+      // The user.id should always be the userID from the users table
+      const staffID = data.staffID || data.staff_id || data.admin_id || data.adminId;
+      console.log('Admin created with staffID:', staffID);
+
+      return { success: true, message: 'Admin parking lot created successfully', staffID: staffID };
+    } catch (error) {
+      console.error('Network error:', error);
+      return { success: false, message: 'Network error. Please try again.' };
     }
-    users.push(userData); // role intentionally omitted until first login choice
-    localStorage.setItem('users', JSON.stringify(users));
-    return { success: true };
   };
 
   const logout = () => {
@@ -39,7 +154,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, login, logout, register, createAdminParkingLot }}>
       {children}
     </AuthContext.Provider>
   );

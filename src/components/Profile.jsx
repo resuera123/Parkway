@@ -12,9 +12,8 @@ export default function Profile() {
    const [loading, setLoading] = useState(true);
 
    const [editData, setEditData] = useState({
-     firstName: '',
-     middleInitial: '',
-     lastName: '',
+     firstname: '',
+     lastname: '',
      email: ''
    });
 
@@ -32,9 +31,8 @@ export default function Profile() {
         const userData = JSON.parse(currentUser);
         setUser(userData);
         setEditData({
-          firstName: userData.firstName || '',
-          middleInitial: userData.middleInitial || '',
-          lastName: userData.lastName || '',
+          firstname: userData.firstname || '',
+          lastname: userData.lastname || '',
           email: userData.email || ''
         });
         setLoading(false);
@@ -69,32 +67,31 @@ export default function Profile() {
     setError('');
     setSuccess('');
 
-    if (!editData.firstName || !editData.lastName || !editData.email) {
+    if (!editData.firstname || !editData.lastname || !editData.email) {
       setError('All fields are required');
       return;
     }
 
-    // Update user data in localStorage
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const userIndex = users.findIndex(u => u.username === user.username);
+    // Update user data in database
+    const updatedUser = {
+      ...user,
+      firstname: editData.firstname,
+      lastname: editData.lastname,
+      email: editData.email
+    };
     
-    if (userIndex !== -1) {
-      users[userIndex] = {
-        ...users[userIndex],
-        firstName: editData.firstName,
-        middleInitial: editData.middleInitial,
-        lastName: editData.lastName,
-        email: editData.email
-      };
-      
-      localStorage.setItem('users', JSON.stringify(users));
-      const updatedUser = users[userIndex];
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      
-      setSuccess('Profile updated successfully!');
-      setIsEditing(false);
-    }
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    
+    setSuccess('Profile updated successfully!');
+    setIsEditing(false);
+    
+    // TODO: Send update to backend API
+    // await fetch(`http://localhost:8080/api/users/${user.id}`, {
+    //   method: 'PUT',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(updatedUser)
+    // });
   };
 
   const handleChangePasswordSubmit = (e) => {
@@ -127,26 +124,29 @@ export default function Profile() {
       return;
     }
 
-    // Update password in localStorage
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const userIndex = users.findIndex(u => u.username === user.username);
+    // Update password in database
+    const updatedUser = {
+      ...user,
+      password: passwordData.newPassword
+    };
     
-    if (userIndex !== -1) {
-      users[userIndex].password = passwordData.newPassword;
-      
-      localStorage.setItem('users', JSON.stringify(users));
-      const updatedUser = users[userIndex];
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      
-      setSuccess('Password changed successfully!');
-      setShowPasswordChange(false);
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-    }
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    
+    setSuccess('Password changed successfully!');
+    setShowPasswordChange(false);
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+    
+    // TODO: Send update to backend API
+    // await fetch(`http://localhost:8080/api/users/${user.id}/password`, {
+    //   method: 'PUT',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ oldPassword: passwordData.currentPassword, newPassword: passwordData.newPassword })
+    // });
   };
 
    if (loading) {
@@ -166,7 +166,7 @@ export default function Profile() {
          <div className="navbar-right">
            <div className="notification-icon">🔔</div>
            <div className="user-info">
-             <span className="username">{user?.firstName || 'User'}</span>
+             <span className="username">{user?.firstname || 'User'}</span>
            </div>
          </div>
        </nav>
@@ -181,11 +181,10 @@ export default function Profile() {
            {/* Profile Header */}
            <div className="profile-header">
              <div className="profile-avatar">
-               {user?.firstName?.charAt(0).toUpperCase()}
+               {user?.firstname?.charAt(0).toUpperCase()}
              </div>
              <div className="profile-title">
-               <h1>{user?.firstName} {user?.middleInitial} {user?.lastName}</h1>
-               <p>@{user?.username}</p>
+               <h1>{user?.firstname} {user?.lastname}</h1>
                <p className="profile-email">{user?.email}</p>
              </div>
            </div>
@@ -204,23 +203,19 @@ export default function Profile() {
                    <div className="profile-info">
                      <div className="info-group">
                        <label>First Name</label>
-                       <p>{user?.firstName}</p>
-                     </div>
-                     <div className="info-group">
-                       <label>Middle Initial</label>
-                       <p>{user?.middleInitial || 'N/A'}</p>
+                       <p>{user?.firstname}</p>
                      </div>
                      <div className="info-group">
                        <label>Last Name</label>
-                       <p>{user?.lastName}</p>
+                       <p>{user?.lastname}</p>
                      </div>
                      <div className="info-group">
                        <label>Email</label>
                        <p>{user?.email}</p>
                      </div>
                      <div className="info-group">
-                       <label>Username</label>
-                       <p>{user?.username}</p>
+                       <label>Role</label>
+                       <p>{user?.role || 'User'}</p>
                      </div>
                      <button 
                        className="edit-btn"
@@ -235,28 +230,18 @@ export default function Profile() {
                        <label>First Name</label>
                        <input
                          type="text"
-                         name="firstName"
-                         value={editData.firstName}
+                         name="firstname"
+                         value={editData.firstname}
                          onChange={handleEditChange}
                          required
-                       />
-                     </div>
-                     <div className="form-group">
-                       <label>Middle Initial</label>
-                       <input
-                         type="text"
-                         name="middleInitial"
-                         value={editData.middleInitial}
-                         onChange={handleEditChange}
-                         maxLength="1"
                        />
                      </div>
                      <div className="form-group">
                        <label>Last Name</label>
                        <input
                          type="text"
-                         name="lastName"
-                         value={editData.lastName}
+                         name="lastname"
+                         value={editData.lastname}
                          onChange={handleEditChange}
                          required
                        />

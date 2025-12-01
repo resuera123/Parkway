@@ -24,11 +24,11 @@ export default function Register() {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
-        if (!formData.username || !formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
             setError('All fields are required');
             return;
         }
@@ -43,14 +43,11 @@ export default function Register() {
             return;
         }
 
-        const result = register({
-            username: formData.username,
-            firstName: formData.firstName,
-            middleInitial: formData.middleInitial,
-            lastName: formData.lastName,
+        const result = await register({
+            firstname: formData.firstName,
+            lastname: formData.lastName,
             email: formData.email,
             password: formData.password
-            // role added later on first login
         });
 
         if (result.success) {

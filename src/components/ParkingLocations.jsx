@@ -15,48 +15,70 @@ export default function ParkingLocations() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [locations, setLocations] = useState([]);
 
-  const locationImages = {
-    'SM City Cebu': smcityImg,
-    'SM Mabolo': smmaboloImg,
-    'IT Park': itparkImg,
-    'Ayala Center Cebu': ayalaImg,
-    'E-Mall': emallImg
+  const getLocationImage = (name) => {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('sm city') || lowerName.includes('smcity')) return smcityImg;
+    if (lowerName.includes('sm mabolo') || lowerName.includes('smmabolo') || lowerName.includes('mabolo')) return smmaboloImg;
+    if (lowerName.includes('it park') || lowerName.includes('itpark')) return itparkImg;
+    if (lowerName.includes('ayala')) return ayalaImg;
+    if (lowerName.includes('emall') || lowerName.includes('e-mall')) return emallImg;
+    return smmaboloImg; // Default image
   };
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('parkingSlots')) || [];
-    if (!stored.length) {
-      const base = [
-        { id: 1, name: 'SM City Cebu', totalSlots: 10, bookedSlots: 0 },
-        { id: 2, name: 'SM Mabolo', totalSlots: 10, bookedSlots: 0 },
-        { id: 3, name: 'IT Park', totalSlots: 10, bookedSlots: 0 },
-        { id: 4, name: 'Ayala Center Cebu', totalSlots: 10, bookedSlots: 0 },
-        { id: 5, name: 'E-Mall', totalSlots: 10, bookedSlots: 0 }
-      ];
-      localStorage.setItem('parkingSlots', JSON.stringify(base));
-      setLocations(base);
-    } else {
-      // migrate any totals not 10
-      const migrated = stored.map(p => {
-        if (p.totalSlots !== 10) {
-          const key = `slotStatuses_${p.id}`;
-          let statuses = JSON.parse(localStorage.getItem(key)) || [];
-          if (statuses.length !== 10) {
-            statuses = Array.from({ length: 10 }, (_, i) => ({
-              slotNumber: i + 1,
-              reserved: statuses[i] ? !!statuses[i].reserved : false
-            }));
-            localStorage.setItem(key, JSON.stringify(statuses));
-          }
-          const booked = statuses.filter(s => s.reserved).length;
-          return { ...p, totalSlots: 10, bookedSlots: booked };
-        }
-        return p;
-      });
-      localStorage.setItem('parkingSlots', JSON.stringify(migrated));
-      setLocations(migrated);
-    }
+    fetchParkingLots();
   }, []);
+
+  const fetchParkingLots = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/admin/parking-lots');
+      const data = await response.json();
+      
+      if (response.ok && data.length > 0) {
+        // Fetch occupied count for each parking lot
+        const locationsWithOccupancy = await Promise.all(
+          data.map(async (lot) => {
+            let occupiedCount = 0;
+            const lotId = lot.admin_id; // Use admin_id as parking lot identifier
+            
+            console.log(`Fetching occupancy for ${lot.parking_lot_name} (admin_id: ${lotId})`);
+            
+            try {
+              const slotsResponse = await fetch(`http://localhost:8080/api/parking-slots/${lotId}`);
+              if (slotsResponse.ok) {
+                const slots = await slotsResponse.json();
+                if (Array.isArray(slots)) {
+                  // Count occupied or reserved slots
+                  occupiedCount = slots.filter(s => 
+                    (s.status || '').toLowerCase() === 'occupied' || s.reserved === true
+                  ).length;
+                  console.log(`${lot.parking_lot_name}: ${occupiedCount}/${lot.capacity} occupied`);
+                }
+              }
+            } catch (error) {
+              console.error(`Error fetching slots for ${lot.parking_lot_name}:`, error);
+            }
+            
+            return {
+              id: lotId,
+              name: lot.parking_lot_name,
+              totalSlots: lot.capacity,
+              bookedSlots: occupiedCount,
+              price: `$${lot.price}/hr`
+            };
+          })
+        );
+        
+        setLocations(locationsWithOccupancy);
+        console.log('Final locations with occupancy:', locationsWithOccupancy);
+      } else {
+        setLocations([]);
+      }
+    } catch (error) {
+      console.error('Error fetching parking lots:', error);
+      setLocations([]);
+    }
+  };
 
   const getStatusColor = (loc) => {
     if (loc.bookedSlots >= loc.totalSlots) return '#f44336';
@@ -102,7 +124,7 @@ export default function ParkingLocations() {
             >
               <div className="location-image-container">
                 <img 
-                  src={locationImages[location.name]} 
+                  src={getLocationImage(location.name)} 
                   alt={location.name}
                   className="location-image"
                 />
@@ -124,6 +146,10 @@ export default function ParkingLocations() {
                   <div className="stat">
                     <span className="stat-label">Vacant</span>
                     <span className="stat-value">{location.totalSlots - location.bookedSlots}/{location.totalSlots}</span>
+                  </div>
+                  <div className="stat stat-price">
+                    <span className="stat-label">Rate</span>
+                    <span className="stat-value">{location.price || '$0/hr'}</span>
                   </div>
                 </div>
 

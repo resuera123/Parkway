@@ -565,8 +565,9 @@
 }
 
 .slot-cell {
-  height: 60px;
+  height: 90px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
@@ -575,6 +576,9 @@
   cursor: pointer;
   transition: 0.25s;
   letter-spacing: 0.5px;
+  padding: 0.5rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .slot-cell.vacant {
@@ -591,6 +595,47 @@
 
 .slot-cell:hover {
   transform: translateY(-4px);
+}
+
+.slot-number {
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+}
+
+.slot-booking-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 0.2rem;
+}
+
+.slot-user {
+  font-size: 0.55rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.slot-vehicle {
+  font-size: 0.5rem;
+  opacity: 0.9;
+}
+
+.slot-model {
+  font-size: 0.45rem;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .legend {
@@ -739,12 +784,32 @@
 }
 
 /* Pending Info and Update Button */
+.parking-spaces-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.instruction-text {
+  font-size: 0.75rem;
+  color: #555;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border-left: 4px solid #00bcd4;
+  margin: 0;
+}
+
+.instruction-text strong {
+  color: #00bcd4;
+  font-weight: 700;
+}
+
 .pending-info {
   display: flex;
   gap: 1.2rem;
   font-size: 0.65rem;
   font-weight: 600;
-  margin: 0.6rem 0 0.8rem;
   background: #f9f9f9;
   padding: 0.6rem 0.8rem;
   border-radius: 10px;
@@ -824,10 +889,36 @@
   letter-spacing: .5px;
 }
 
+.delete-booking-btn {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: #fff;
+  border: none;
+  padding: .45rem .8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .6rem;
+  transition: .3s;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-left: .4rem;
+}
+
+.delete-booking-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, .35);
+}
+
+.delete-booking-btn:active {
+  transform: translateY(0);
+}
+
 .b-col.actions {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: .4rem;
 }
 
 /* Responsive Styles */
