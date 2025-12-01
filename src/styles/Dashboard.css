@@ -14,7 +14,7 @@ body {
 /* Navbar */
 .navbar {
   background: linear-gradient(90deg, #00bcd4 0%, #0097a7 100%);
-  padding: 1rem 2rem;
+  padding: 1rem 2rem 3.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -34,7 +34,7 @@ body {
 
 .dashboard-logo-icon {
   font-size: 2rem;
-  color: #00d4ff;
+  color: #fff;
   text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 

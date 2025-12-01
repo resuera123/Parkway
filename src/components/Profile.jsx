@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Profile.css';
 import { useNavigate } from 'react-router-dom';
+import { BsBusFrontFill } from "react-icons/bs";
 
 export default function Profile() {
    const navigate = useNavigate();
@@ -161,23 +162,18 @@ export default function Profile() {
      <>
        <nav className="navbar">
          <div className="navbar-left">
+           <BsBusFrontFill className="dashboard-logo-icon" />
            <div className="logo">PARKWAY</div>
          </div>
-         <div className="navbar-right">
-           <div className="notification-icon">🔔</div>
-           <div className="user-info">
-             <span className="username">{user?.firstname || 'User'}</span>
-           </div>
-         </div>
+         
        </nav>
 
        <div className="profile-container">
          <div className="profile-wrapper">
            {/* Back Button */}
-           <button className="back-link" onClick={() => navigate(user?.role === 'admin' ? '/admin' : '/dashboard')}>
+          <button className="back-link" onClick={() => navigate(user?.role === 'admin' ? '/admin' : '/dashboard')}>
              ← Back to {user?.role === 'admin' ? 'Admin' : 'Dashboard'}
            </button>
-
            {/* Profile Header */}
            <div className="profile-header">
              <div className="profile-avatar">

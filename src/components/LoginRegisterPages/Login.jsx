@@ -454,7 +454,7 @@ export default function Login() {
                                         value={parkingLotData.parking_lot_name}
                                         onChange={handleParkingLotChange}
                                         required 
-                                        style={{ color: '#000', backgroundColor: '#fff' }}
+                                        style={{color: '#000', backgroundColor: '#fff', border: 'solid', borderColor: 'grey', borderWidth: '0.5px'}}
                                     />
                                 </div>
                             </div>
@@ -471,7 +471,7 @@ export default function Login() {
                                         onChange={handleParkingLotChange}
                                         min="1"
                                         required 
-                                        style={{ color: '#000', backgroundColor: '#fff' }}
+                                        style={{color: '#000', backgroundColor: '#fff', border: 'solid', borderColor: 'grey', borderWidth: '0.5px'}}
                                     />
                                 </div>
                             </div>
@@ -489,25 +489,27 @@ export default function Login() {
                                         onChange={handleParkingLotChange}
                                         min="0"
                                         required 
-                                        style={{ color: '#000', backgroundColor: '#fff' }}
+                                        style={{ color: '#000', backgroundColor: '#fff', border: 'solid', borderColor: 'grey', borderWidth: '0.5px'}}
                                     />
                                 </div>
                             </div>
-                            <button type="submit" className="login_btn" style={{ marginTop: '1rem' }}>
-                                Create Parking Lot
-                            </button>
-                            <button
-                              type="button"
-                              className="role-cancel-btn"
-                              onClick={() => {
-                                setShowAdminForm(false);
-                                setPendingUser(null);
-                                localStorage.removeItem('currentUser');
-                              }}
-                              style={{ marginTop: '0.5rem' }}
-                            >
-                              Cancel
-                            </button>
+                            <div style = {{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                                <button type="submit" className="role-cancel-btn btn-danger" style={{width: '200px',  fontSize: '14px' }}>
+                                    Create Parking Lot
+                                </button>
+                                <button
+                                type="button"
+                                className="role-cancel-btn"
+                                onClick={() => {
+                                    setShowAdminForm(false);
+                                    setPendingUser(null);
+                                    localStorage.removeItem('currentUser');
+                                }}
+                                style={{ width: '200px' , fontSize: '14px', }}
+                                >
+                                Cancel
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -533,7 +535,7 @@ export default function Login() {
                                         value={vehicleData.plate_number}
                                         onChange={handleVehicleChange}
                                         required 
-                                        style={{ color: '#000', backgroundColor: '#fff' }}
+                                        style={{ color: '#000', backgroundColor: '#fff', border: 'solid', borderColor: 'grey', borderWidth: '0.5px' }}
                                     />
                                 </div>
                             </div>
@@ -549,7 +551,7 @@ export default function Login() {
                                         value={vehicleData.model}
                                         onChange={handleVehicleChange}
                                         required 
-                                        style={{ color: '#000', backgroundColor: '#fff' }}
+                                        style={{ color: '#000', backgroundColor: '#fff', border: 'solid', borderColor: 'grey', borderWidth: '0.5px' }}
                                     />
                                 </div>
                             </div>
@@ -570,21 +572,23 @@ export default function Login() {
                                     </select>
                                 </div>
                             </div>
-                            <button type="submit" className="login_btn" style={{ marginTop: '1rem' }}>
-                                Add Vehicle
-                            </button>
-                            <button
-                              type="button"
-                              className="role-cancel-btn"
-                              onClick={() => {
-                                setShowVehicleForm(false);
-                                setPendingUser(null);
-                                localStorage.removeItem('currentUser');
-                              }}
-                              style={{ marginTop: '0.5rem' }}
-                            >
-                              Cancel
-                            </button>
+                            <div style = {{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                                <button type="submit" className="role-cancel-btn btn-danger" style={{width: '200px',  fontSize: '14px' }}>
+                                    Add Vehicle
+                                </button>
+                                <button
+                                type="button"
+                                className="role-cancel-btn"
+                                onClick={() => {
+                                    setShowVehicleForm(false);
+                                    setPendingUser(null);
+                                    localStorage.removeItem('currentUser');
+                                }}
+                                style={{ width: '200px' , fontSize: '14px', }}
+                                >
+                                Cancel
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
