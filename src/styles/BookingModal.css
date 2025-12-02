@@ -190,6 +190,64 @@
   border-left: 4px solid #2e7d32;
 }
 
+.parking-full-message {
+  padding: 3rem 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border-radius: 15px;
+  margin: 2rem;
+}
+
+.full-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.parking-full-message h3 {
+  font-size: 2rem;
+  color: #c62828;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.full-message-text {
+  font-size: 1.1rem;
+  color: #d32f2f;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.occupancy-details {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #d32f2f;
+}
+
+.occupancy-details p {
+  color: #333;
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.occupancy-details strong {
+  color: #c62828;
+}
+
+.full-message-suggestion {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 0;
+}
+
 .form-actions {
   display: flex;
   gap: 1rem;
