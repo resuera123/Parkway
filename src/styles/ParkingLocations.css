@@ -208,6 +208,12 @@
   color: #00bcd4;
 }
 
+.stat-value.full-badge {
+  color: #f44336;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
 .stat-price .stat-value {
   color: #009688;
   font-weight: 800;

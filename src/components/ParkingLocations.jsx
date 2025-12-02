@@ -141,7 +141,11 @@ export default function ParkingLocations() {
                 <div className="location-stats">
                   <div className="stat">
                     <span className="stat-label">Occupied</span>
-                    <span className="stat-value">{location.bookedSlots}/{location.totalSlots}</span>
+                    <span 
+                      className={`stat-value ${location.bookedSlots >= location.totalSlots ? 'full-badge' : ''}`}
+                    >
+                      {location.bookedSlots}/{location.totalSlots}
+                    </span>
                   </div>
                   <div className="stat">
                     <span className="stat-label">Vacant</span>

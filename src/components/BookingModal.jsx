@@ -11,10 +11,12 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
+  const [parkingAvailable, setParkingAvailable] = useState(true);
+  const [occupancy, setOccupancy] = useState(null);
 
-  // Fetch user's vehicle information
+  // Check parking availability and fetch user's vehicle information
   useEffect(() => {
-    const fetchUserVehicle = async () => {
+    const fetchData = async () => {
       const currentUser = JSON.parse(localStorage.getItem('currentUser'));
       if (!currentUser || !currentUser.id) {
         setError('Please login to make a booking');
@@ -23,9 +25,26 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
       }
 
       try {
-        const response = await fetch(`http://localhost:8080/api/vehicles/user/${currentUser.id}`);
-        if (response.ok) {
-          const vehicleData = await response.json();
+        // Check parking lot availability
+        const parkingLotId = parkingSlot.id || parkingSlot.staff_id || parkingSlot.admin_id || parkingSlot.staffID;
+        
+        if (parkingLotId) {
+          const availabilityResponse = await fetch(`http://localhost:8080/api/parking-slots/${parkingLotId}/availability`);
+          if (availabilityResponse.ok) {
+            const availabilityData = await availabilityResponse.json();
+            setParkingAvailable(availabilityData.hasAvailable);
+            setOccupancy(availabilityData.occupancy);
+            
+            if (!availabilityData.hasAvailable) {
+              setError('⚠️ Parking lot is already full. No available slots at this moment.');
+            }
+          }
+        }
+
+        // Fetch user's vehicle information
+        const vehicleResponse = await fetch(`http://localhost:8080/api/vehicles/user/${currentUser.id}`);
+        if (vehicleResponse.ok) {
+          const vehicleData = await vehicleResponse.json();
           const vehicleType = vehicleData.vehicle_type || vehicleData.vehicleType || 'Car';
           setBookingData(prev => ({
             ...prev,
@@ -33,16 +52,16 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
           }));
         }
       } catch (error) {
-        console.error('Error fetching vehicle:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
     if (isOpen) {
-      fetchUserVehicle();
+      fetchData();
     }
-  }, [isOpen]);
+  }, [isOpen, parkingSlot]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,6 +92,12 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    // Check if parking is available before submitting
+    if (!parkingAvailable) {
+      setError('⚠️ Parking lot is already full. No available slots at this moment.');
+      return;
+    }
 
     if (!bookingData.dateReserved || !bookingData.timeIn || !bookingData.timeOut) {
       setError('All fields are required');
@@ -132,7 +157,16 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || 'Failed to create booking');
+        // Enhanced error message handling
+        const errorMessage = data.message || data.error || 'Failed to create booking';
+        
+        // Check if it's a parking full error
+        if (errorMessage.toLowerCase().includes('full') || errorMessage.toLowerCase().includes('available slots')) {
+          setError('⚠️ ' + errorMessage);
+          setParkingAvailable(false);
+        } else {
+          setError(errorMessage);
+        }
         return;
       }
 
@@ -247,87 +281,99 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
           <p className="modal-subtitle">{parkingSlot.name}</p>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
-
-        <form onSubmit={handleSubmit} className="booking-form">
-          <div className="form-group">
-            <label>Date Reserved</label>
-            <input
-              type="date"
-              name="dateReserved"
-              value={bookingData.dateReserved}
-              onChange={handleChange}
-              min={new Date().toISOString().split('T')[0]}
-              required
-            />
+        {loading ? (
+          <div style={{ padding: '40px', textAlign: 'center' }}>
+            <p>Loading...</p>
           </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Time In</label>
-              <div className="input-with-icon">
-                <i className="bx bx-time-five"></i>
-                <input
-                  type="time"
-                  name="timeIn"
-                  value={bookingData.timeIn}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Time Out</label>
-              <div className="input-with-icon">
-                <i className="bx bx-time-five"></i>
-                <input
-                  type="time"
-                  name="timeOut"
-                  value={bookingData.timeOut}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {bookingData.vehicleType && (
-            <div className="form-group">
-              <label>Vehicle Type</label>
-              <div style={{ padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px', color: '#333' }}>
-                {bookingData.vehicleType}
-              </div>
-            </div>
-          )}
-
-          {bookingData.timeIn && bookingData.timeOut && (
-            <div className="booking-summary">
-              <div className="summary-item">
-                <span>Duration:</span>
-                <strong>{calculateDuration()} hours</strong>
-              </div>
-              <div className="summary-item">
-                <span>Price per hour:</span>
-                <strong>{parkingSlot.price}</strong>
-              </div>
-              <div className="summary-item total">
-                <span>Total Price:</span>
-                <strong>₱{calculateTotalPrice()}</strong>
-              </div>
-            </div>
-          )}
-
-          <div className="form-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn-confirm">
-              Confirm Booking
+        ) : !parkingAvailable ? (
+          <div className="parking-full-message">
+            <div className="full-icon">❌</div>
+            <h3>Parking Lot is Already Full</h3>
+            <p className="full-message-text">No available slots at this moment</p>
+            <button className="btn-cancel" onClick={onClose} style={{ marginTop: '20px', width: '100%' }}>
+              Close
             </button>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="booking-form">
+            <div className="form-group">
+              <label>Date Reserved</label>
+              <input
+                type="date"
+                name="dateReserved"
+                value={bookingData.dateReserved}
+                onChange={handleChange}
+                min={new Date().toISOString().split('T')[0]}
+                required
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Time In</label>
+                <div className="input-with-icon">
+                  <i className="bx bx-time-five"></i>
+                  <input
+                    type="time"
+                    name="timeIn"
+                    value={bookingData.timeIn}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Time Out</label>
+                <div className="input-with-icon">
+                  <i className="bx bx-time-five"></i>
+                  <input
+                    type="time"
+                    name="timeOut"
+                    value={bookingData.timeOut}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {bookingData.vehicleType && (
+              <div className="form-group">
+                <label>Vehicle Type</label>
+                <div style={{ padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px', color: '#333' }}>
+                  {bookingData.vehicleType}
+                </div>
+              </div>
+            )}
+
+            {bookingData.timeIn && bookingData.timeOut && (
+              <div className="booking-summary">
+                <div className="summary-item">
+                  <span>Duration:</span>
+                  <strong>{calculateDuration()} hours</strong>
+                </div>
+                <div className="summary-item">
+                  <span>Price per hour:</span>
+                  <strong>{parkingSlot.price}</strong>
+                </div>
+                <div className="summary-item total">
+                  <span>Total Price:</span>
+                  <strong>₱{calculateTotalPrice()}</strong>
+                </div>
+              </div>
+            )}
+
+            <div className="form-actions">
+              <button type="button" className="btn-cancel" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-confirm">
+                Confirm Booking
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
