@@ -886,7 +886,7 @@ export default function AdminDashboard() {
         <header className="admin-topbar">
           <div className="topbar-right">
             <div className="admin-user-mini">
-              <span>{adminUser?.firstname || 'Admin'}</span>
+              <span>Welcome, {adminUser?.firstname || 'Admin'}</span>
               <span className="role-tag">Admin</span>
             </div>
             <div

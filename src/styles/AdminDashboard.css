@@ -724,6 +724,7 @@
 
 .b-col.main {
   display: flex;
+  font-size: 15px;
   flex-direction: column;
 }
 

@@ -641,7 +641,7 @@ export default function Dashboard() {
                   </thead>
                   <tbody>
                     {bookings.map((booking) => (
-                      <tr key={booking.booking_id || booking.id} className={`booking-row ${booking.status}`}>
+                      <tr key={booking.booking_id || booking.id} className={`booking-row-dashboard ${booking.status}`}>
                         <td><strong>{booking.parking_lot_name || 'N/A'}</strong></td>
                         <td>{new Date(booking.date_reserved).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                         <td>{booking.time_in}</td>
