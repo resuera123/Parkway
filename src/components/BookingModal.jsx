@@ -11,6 +11,8 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [parkingAvailable, setParkingAvailable] = useState(true);
   const [occupancy, setOccupancy] = useState(null);
 
@@ -90,6 +92,14 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (submitting) {
+      console.warn('Submission already in progress');
+      return;
+    }
+    
+    setSubmitting(true);
     setError('');
     setSuccess('');
 
@@ -167,105 +177,19 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
         } else {
           setError(errorMessage);
         }
+        setSubmitting(false);
         return;
       }
 
-      // Create admin notification for the booking request
-      try {
-        // First, get the admin user_id for this parking lot
-        let adminUserId = null;
-        console.log('🔔 Step 1: Fetching parking lot data for parkingLotId:', parkingLotId);
-        
-        try {
-          const adminResponse = await fetch(`http://localhost:8080/api/parkinglots/${parkingLotId}`);
-          console.log('Parking lot fetch status:', adminResponse.status);
-          
-          if (adminResponse.ok) {
-            const parkingLotData = await adminResponse.json();
-            console.log('Parking lot data received:', parkingLotData);
-            adminUserId = parkingLotData.admin_id || parkingLotData.user_id || parkingLotData.userId;
-            console.log('🔔 Step 2: Extracted admin_id:', adminUserId);
-          } else {
-            const errorText = await adminResponse.text();
-            console.error('Failed to fetch parking lot:', adminResponse.status, errorText);
-          }
-        } catch (adminError) {
-          console.error('Error fetching admin for parking lot:', adminError);
-        }
-
-        if (adminUserId) {
-          const notificationPayload = {
-            adminId: adminUserId,
-            admin_id: adminUserId,
-            parkingLotId: parkingLotId,
-            parking_lot_id: parkingLotId,
-            bookingId: data.bookingId || data.booking_id,
-            booking_id: data.bookingId || data.booking_id,
-            userId: currentUser.id,
-            user_id: currentUser.id,
-            userName: `${currentUser.firstname} ${currentUser.lastname}`,
-            user_name: `${currentUser.firstname} ${currentUser.lastname}`,
-            parkingLotName: parkingSlot.name,
-            parking_lot_name: parkingSlot.name,
-            dateReserved: bookingData.dateReserved,
-            date_reserved: bookingData.dateReserved,
-            timeIn: bookingData.timeIn,
-            time_in: bookingData.timeIn,
-            timeOut: bookingData.timeOut,
-            time_out: bookingData.timeOut,
-            vehicleType: bookingData.vehicleType,
-            vehicle_type: bookingData.vehicleType,
-            title: 'New Booking Request',
-            message: `${currentUser.firstname} ${currentUser.lastname} requested to book ${parkingSlot.name} on ${bookingData.dateReserved} from ${bookingData.timeIn} to ${bookingData.timeOut}`,
-            type: 'booking',
-            read: false
-          };
-          
-          console.log('🔔 Step 3: Sending admin notification to /api/notifications/admin');
-          console.log('Payload:', JSON.stringify(notificationPayload, null, 2));
-          
-          const notifResponse = await fetch('http://localhost:8080/api/notifications/admin', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(notificationPayload),
-          });
-          
-          console.log('🔔 Step 4: Admin notification response status:', notifResponse.status);
-          
-          if (notifResponse.ok) {
-            const responseData = await notifResponse.json();
-            console.log('✅ Admin notification sent successfully!', responseData);
-          } else {
-            const errorText = await notifResponse.text();
-            console.error('❌ Failed to send admin notification:', notifResponse.status);
-            console.error('Error details:', errorText);
-          }
-        } else {
-          console.warn('⚠️ Could not determine admin_id for notification - skipping notification');
-        }
-      } catch (notifError) {
-        console.error('❌ Exception while sending admin notification:', notifError);
-        // Continue even if notification fails
-      }
-
-      setSuccess('Booking request submitted! Awaiting admin confirmation.');
-      
-      setTimeout(() => {
-        onClose();
-        setBookingData({
-          dateReserved: '',
-          timeIn: '',
-          timeOut: '',
-          vehicleType: ''
-        });
-        setSuccess('');
-        window.location.reload();
-      }, 2000);
+      // Backend now handles admin notification creation
+      // Frontend just needs to show success and close modal
+      setSuccess('✅ Booking request submitted! Awaiting admin confirmation.');
+      setShowConfirmation(true);
+      setSubmitting(false);
     } catch (error) {
       console.error('Booking error:', error);
       setError('Network error. Please try again.');
+      setSubmitting(false);
     }
   };
 
@@ -355,7 +279,7 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
                 </div>
                 <div className="summary-item">
                   <span>Price per hour:</span>
-                  <strong>{parkingSlot.price}</strong>
+                  <strong>₱{parseFloat(parkingSlot.price.replace(/[^0-9.]/g, '')) || 0}/hr</strong>
                 </div>
                 <div className="summary-item total">
                   <span>Total Price:</span>
@@ -365,16 +289,56 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
             )}
 
             <div className="form-actions">
-              <button type="button" className="btn-cancel" onClick={onClose}>
+              <button type="button" className="btn-cancel" onClick={onClose} disabled={submitting}>
                 Cancel
               </button>
-              <button type="submit" className="btn-confirm">
-                Confirm Booking
+              <button type="submit" className="btn-confirm" disabled={submitting}>
+                {submitting ? 'Submitting...' : 'Confirm Booking'}
               </button>
             </div>
           </form>
         )}
       </div>
+
+      {/* Confirmation Modal - Shows after successful booking */}
+      {showConfirmation && (
+        <div className="modal-overlay" onClick={() => {
+          setShowConfirmation(false);
+          onClose();
+          setBookingData({ dateReserved: '', timeIn: '', timeOut: '', vehicleType: '' });
+          setSuccess('');
+        }}>
+          <div className="modal-content confirmation-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirmation-header">
+              <div className="confirmation-icon">✓</div>
+              <h2>Booking Submitted!</h2>
+            </div>
+            
+            <div className="confirmation-body">
+              <p className="confirmation-message">
+                Your booking request has been submitted successfully.
+              </p>
+              <p className="confirmation-wait">
+                Please wait for confirmation. You will receive a notification once your booking is approved.
+              </p>
+            </div>
+            
+            <div className="confirmation-actions">
+              <button 
+                className="btn-confirm-close"
+                onClick={() => {
+                  setShowConfirmation(false);
+                  onClose();
+                  setBookingData({ dateReserved: '', timeIn: '', timeOut: '', vehicleType: '' });
+                  setSuccess('');
+                }}
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

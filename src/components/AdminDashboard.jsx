@@ -611,24 +611,23 @@ export default function AdminDashboard() {
       
       // Try to update booking status in backend first
       try {
-        console.log('Attempting to update booking status in backend...');
-        const updateResponse = await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
-          method: 'PATCH',
+        console.log('Attempting to confirm booking in backend...');
+        const confirmResponse = await fetch(`http://localhost:8080/api/bookings/${bookingId}/confirm`, {
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ status: 'confirmed' }),
         });
         
-        if (updateResponse.ok) {
-          console.log('✓ Backend booking status updated successfully');
+        if (confirmResponse.ok) {
+          console.log('✓ Backend booking confirmed successfully');
         } else {
-          console.warn('⚠️ Backend update failed, status:', updateResponse.status);
-          console.warn('Continuing with local update...');
+          console.warn('⚠️ Backend confirmation failed, status:', confirmResponse.status);
+          const errorText = await confirmResponse.text();
+          console.warn('Error details:', errorText);
         }
       } catch (backendError) {
-        console.error('Backend update error:', backendError);
-        console.warn('Continuing with local update...');
+        console.error('Backend confirmation error:', backendError);
       }
       
       // Persist confirmation to localStorage so it survives page reload
@@ -655,36 +654,8 @@ export default function AdminDashboard() {
       // Immediately update state to trigger re-render
       setBookings(updatedBookings);
       
-      // Create user notification
-      try {
-        const notificationPayload = {
-          user_id: booking.user_id,
-          booking_id: bookingId,
-          parking_lot_id: booking.parking_lot_id,
-          title: 'Booking Confirmed!',
-          message: `Your booking at ${booking.parking_lot_name || 'parking lot'} on ${new Date(booking.date_reserved).toLocaleDateString()} (${booking.time_in} - ${booking.time_out}) has been confirmed!`,
-          type: 'confirmation',
-          read: false
-        };
-        
-        console.log('Sending user notification:', notificationPayload);
-        
-        const notifResponse = await fetch('http://localhost:8080/api/notifications/user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(notificationPayload),
-        });
-        
-        if (notifResponse.ok) {
-          console.log('✓ User notification sent successfully');
-        } else {
-          console.error('Failed to send user notification, status:', notifResponse.status);
-        }
-      } catch (notifError) {
-        console.error('Failed to send user notification:', notifError);
-      }
+      // Backend automatically creates user notification when booking is confirmed
+      // No need to create it manually from frontend
 
       // Find first available parking slot and mark as occupied
       const loc = parkingSlots.find(p => p.id === booking.parking_lot_id);
@@ -899,28 +870,40 @@ export default function AdminDashboard() {
             {showNotifications && (
               <div className="notifications-dropdown">
                 <div className="notifications-header">
-                  <h3>Booking Requests</h3>
+                  <h3>Notifications</h3>
+                  {adminNotifications.some(n => !n.read) && (
+                    <button 
+                      className="mark-all-read-btn"
+                      onClick={() => {
+                        adminNotifications.forEach(n => {
+                          if (!n.read) markNotificationAsRead(n.notification_id || n.id);
+                        });
+                      }}
+                    >Mark All as Read</button>
+                  )}
                 </div>
                 <div className="notifications-list">
                   {adminNotifications.length ? adminNotifications.map(n => (
                     <div
                       key={n.notification_id || n.id}
-                      className={`notification-item ${n.read ? 'read' : 'unread'}`}
+                      className={`notification-item ${n.read ? 'read' : 'unread'} ${n.type || 'booking'}`}
                     >
+                      <div className="notification-icon">
+                        {n.type === 'confirmation' ? '✓' : '📌'}
+                      </div>
                       <div className="notification-content">
-                        <h4>New Booking Request</h4>
-                        <p><strong>{n.user_name}</strong> requested booking at <strong>{n.parking_lot_name}</strong></p>
-                        <p>Date: {n.date_reserved} | Time: {n.time_in} - {n.time_out}</p>
+                        <h4>{n.title || (n.type === 'confirmation' ? 'Confirmation Update' : 'New Booking Request')}</h4>
+                        <p>{n.message}</p>
                         <small>{new Date(n.created_at || n.timestamp).toLocaleString()}</small>
                       </div>
                       {!n.read && (
                         <button
                           className="mark-read-btn"
                           onClick={() => markNotificationAsRead(n.notification_id || n.id)}
-                        >Mark Read</button>
+                        >✓</button>
                       )}
                     </div>
-                  )) : <div className="no-notifications"><p>No booking requests</p></div>}
+                  )) : <div className="no-notifications"><p>No notifications</p></div>}
                 </div>
               </div>
             )}

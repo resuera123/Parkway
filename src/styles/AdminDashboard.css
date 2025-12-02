@@ -1026,3 +1026,154 @@
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
   transform: translateY(-6px);
 }
+
+/* Notifications Dropdown Styling */
+.notifications-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 380px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.5rem;
+}
+
+.notifications-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notifications-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.mark-all-read-btn {
+  background: #f0f0f0;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #555;
+}
+
+.mark-all-read-btn:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.notifications-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.notification-item {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.notification-item:hover {
+  background: #f9f9f9;
+}
+
+.notification-item.unread {
+  background: #f0f7ff;
+  border-left: 3px solid #2196f3;
+}
+
+.notification-item.booking {
+  border-left-color: #2196f3;
+}
+
+.notification-item.confirmation {
+  border-left-color: #4caf50;
+}
+
+.notification-item.pending {
+  border-left-color: #ff9800;
+}
+
+.notification-item.read {
+  opacity: 0.7;
+}
+
+.notification-icon {
+  font-size: 1.3rem;
+  min-width: 1.5rem;
+  text-align: center;
+  margin-top: 0.2rem;
+}
+
+.notification-content {
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+.notification-content h4 {
+  margin: 0 0 0.3rem 0;
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.notification-content p {
+  margin: 0.2rem 0;
+  color: #666;
+  line-height: 1.4;
+}
+
+.notification-content small {
+  display: block;
+  color: #999;
+  font-size: 0.75rem;
+  margin-top: 0.3rem;
+}
+
+.mark-read-btn {
+  background: #e0e0e0;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+  min-width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.mark-read-btn:hover {
+  background: #d0d0d0;
+  color: #333;
+}
+
+.no-notifications {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #999;
+}
+
+.no-notifications p {
+  margin: 0;
+  font-size: 0.85rem;
+}
