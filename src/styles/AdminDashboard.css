@@ -308,6 +308,7 @@
   padding: 1.2rem 1rem;
   gap: 1.2rem;
   color: #fff;
+  position: relative;
 }
 
 .admin-brand {
@@ -354,7 +355,12 @@
 }
 
 .admin-nav-item.danger {
-  margin-top: auto;
+  position: absolute;
+  bottom: 1.2rem;
+  left: 1rem;
+  right: 1rem;
+  width: calc(100% - 2rem);
+  margin-top: 0;
   background: linear-gradient(135deg, #f44336, #d32f2f);
 }
 
