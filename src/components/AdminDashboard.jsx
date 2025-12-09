@@ -3,6 +3,9 @@ import '../styles/AdminDashboard.css';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { BsBusFrontFill } from "react-icons/bs";
+import ConfirmationModal from './ConfirmationModal';
+import AskModal from './AskModal';
+import SuccessModal from './SuccessModal';
 
 export default function AdminDashboard() {
   const { logout } = useAuth();
@@ -14,8 +17,15 @@ export default function AdminDashboard() {
   const [selectedLocationId, setSelectedLocationId] = useState(null);
   const [locationSlots, setLocationSlots] = useState([]); // per-slot status for selected location
   const [unsavedChanges, setUnsavedChanges] = useState(false);
-
-  useEffect(() => {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [bookingToConfirm, setBookingToConfirm] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+    useEffect(() => {
     const cu = localStorage.getItem('currentUser');
     if (cu) setAdminUser(JSON.parse(cu));
     initParkingSlots();
@@ -487,158 +497,119 @@ export default function AdminDashboard() {
     navigate('/');
   };
 
-  const handleConfirmBooking = async (bookingId) => {
+  // 1. Trigger - Opens the "Are you sure?" Modal
+  const handleConfirmBooking = (bookingId) => {
+    setBookingToConfirm(bookingId);
+    setIsConfirmModalOpen(true);
+  };
+
+  // 2. Execution - The actual Logic (This runs when you click YES)
+  const executeConfirmation = async () => {
+    if (!bookingToConfirm) return;
+    
+    setIsProcessing(true);
+    const bookingId = bookingToConfirm;
+
     try {
       console.log('Confirming booking ID:', bookingId);
       const booking = bookings.find(b => (b.booking_id || b.id) === bookingId);
       
       if (!booking) {
-        console.error('Booking not found:', bookingId);
-        alert('Booking not found');
+        alert('Booking not found in list');
+        setIsConfirmModalOpen(false);
+        setIsProcessing(false);
         return;
       }
-      
-      console.log('Booking to confirm:', booking);
-      
-      // Since backend endpoints are failing due to CORS/implementation issues,
-      // we'll update the status locally and proceed with slot updates
-      console.warn('⚠️ Backend booking confirmation endpoint has issues. Updating locally.');
-      console.warn('Backend needs to fix: 1) CORS configuration, 2) /confirm endpoint query bug');
-      
-      // First, verify the booking exists and is pending
-      if (!booking) {
-        alert('Booking not found');
-        return;
-      }
-      
-      if (booking.status === 'confirmed') {
-        alert('This booking is already confirmed');
-        return;
-      }
-      
-      // Try to update booking status in backend first
+
+      // --- LOGIC PART A: Call Backend to Confirm Booking ---
       try {
-        console.log('Attempting to update booking status in backend...');
-        const updateResponse = await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
+        await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'confirmed' }),
         });
-        
-        if (updateResponse.ok) {
-          console.log('✓ Backend booking status updated successfully');
-        } else {
-          console.warn('⚠️ Backend update failed, status:', updateResponse.status);
-          console.warn('Continuing with local update...');
-        }
       } catch (backendError) {
-        console.error('Backend update error:', backendError);
-        console.warn('Continuing with local update...');
+        console.warn('Backend update failed, continuing with local update...', backendError);
       }
       
-      // Persist confirmation to localStorage so it survives page reload
-      const parkingLotId = booking.parking_lot_id;
-      const confirmedBookingsKey = `confirmedBookings_${parkingLotId}`;
-      const existingConfirmed = JSON.parse(localStorage.getItem(confirmedBookingsKey) || '[]');
-      if (!existingConfirmed.includes(bookingId)) {
-        existingConfirmed.push(bookingId);
-        localStorage.setItem(confirmedBookingsKey, JSON.stringify(existingConfirmed));
-        console.log('✓ Booking confirmation persisted to localStorage:', bookingId);
-      }
-      
-      // Update booking status locally for instant UI update
-      const updatedBookings = bookings.map(b => {
-        if ((b.booking_id || b.id) === bookingId) {
-          console.log('Updating booking from status:', b.status, 'to confirmed');
-          return { ...b, status: 'confirmed' };
+      // --- LOGIC PART B: Save to LocalStorage (Your Custom Fix) ---
+      if (booking.parking_lot_id) {
+        const confirmedBookingsKey = `confirmedBookings_${booking.parking_lot_id}`;
+        const existingConfirmed = JSON.parse(localStorage.getItem(confirmedBookingsKey) || '[]');
+        if (!existingConfirmed.includes(bookingId)) {
+          existingConfirmed.push(bookingId);
+          localStorage.setItem(confirmedBookingsKey, JSON.stringify(existingConfirmed));
         }
-        return b;
-      });
-      
-      console.log('✓ Booking status updated locally to confirmed');
-      
-      // Immediately update state to trigger re-render
-      setBookings(updatedBookings);
-      
-      // Find first available parking slot and mark as occupied
+      }
+
+      // --- LOGIC PART C: Find Vacant Slot & Mark Occupied ---
       const loc = parkingSlots.find(p => p.id === booking.parking_lot_id);
-      console.log('Looking for parking lot:', booking.parking_lot_id, 'Found:', loc);
-      
       if (loc) {
         try {
-          // Get available slots
-          console.log('Fetching slots for parking lot ID:', loc.id);
           const slotsResponse = await fetch(`http://localhost:8080/api/parking-slots/${loc.id}`);
           if (slotsResponse.ok) {
             const slots = await slotsResponse.json();
-            console.log('All slots before update:', slots);
             const vacantSlot = slots.find(s => (s.status || '').toLowerCase() === 'vacant');
-            console.log('First vacant slot found:', vacantSlot);
             
             if (vacantSlot) {
               const slotId = vacantSlot.slot_id || vacantSlot.slotId;
-              console.log('Updating slot ID:', slotId, 'to occupied');
-              
-              // Mark slot as occupied
-              const updateResponse = await fetch(`http://localhost:8080/api/parking-slots/${slotId}`, {
+              // API CALL to occupy slot
+              await fetch(`http://localhost:8080/api/parking-slots/${slotId}`, {
                 method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'occupied' }),
               });
-              
-              if (updateResponse.ok) {
-                console.log('✓ Parking slot successfully marked as occupied:', slotId);
-              } else {
-                console.error('Failed to update slot, status:', updateResponse.status);
-              }
-            } else {
-              console.warn('No vacant slots available!');
             }
           }
         } catch (slotError) {
           console.error('Failed to update parking slot:', slotError);
         }
-      } else {
-        console.error('Could not find parking lot with ID:', booking.parking_lot_id);
       }
-      
-      // Reload all data to ensure everything is in sync
-      console.log('Reloading all data after confirmation...');
-      await initParkingSlots();
-      
-      // Always refresh the parking slots view for the booking's location
-      if (booking.parking_lot_id) {
-        console.log('Refreshing slots for location:', booking.parking_lot_id);
-        await loadLocationSlotStatuses(booking.parking_lot_id);
-        
-        // If it's not the currently selected location, switch to it
-        if (selectedLocationId !== booking.parking_lot_id) {
-          setSelectedLocationId(booking.parking_lot_id);
+
+      // --- LOGIC PART D: Update UI Immediately ---
+      const updatedBookings = bookings.map(b => {
+        if ((b.booking_id || b.id) === bookingId) {
+          return { ...b, status: 'confirmed' };
         }
+        return b;
+      });
+      setBookings(updatedBookings);
+      
+      // Refresh Lists
+      await initParkingSlots(); 
+      if (booking.parking_lot_id) {
+         await loadLocationSlotStatuses(booking.parking_lot_id);
       }
       
-      alert('Booking confirmed and user notified!');
-      
-      // Don't reload bookings - we already updated the state locally
-      // Backend confirmation endpoint has bugs, so we maintain local state
-      console.log('✓ Booking confirmation complete - using local state update');
+      // Success! Close AskModal, Open SuccessModal
+      setIsConfirmModalOpen(false);
+      setShowSuccess(true);
+      setBookingToConfirm(null);
+
     } catch (error) {
       console.error('Error confirming booking:', error);
       alert('Failed to confirm booking');
+      setIsConfirmModalOpen(false);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleDeleteBooking = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to delete this booking? This will also free up the parking slot if it was reserved.')) {
-      return;
-    }
+  // 1. Opens the modal
+  const handleDeleteBooking = (bookingId) => {
+    setBookingToDelete(bookingId);
+    setIsDeleteModalOpen(true);
+  };
+
+  // 2. executes the deletion (Admin Logic)
+  const confirmDelete = async () => {
+    if (!bookingToDelete) return;
+    
+    setIsDeleting(true);
+    const bookingId = bookingToDelete;
 
     try {
-      const booking = bookings.find(b => b.booking_id === bookingId);
+      const booking = bookings.find(b => (b.booking_id || b.id) === bookingId);
       
       const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
         method: 'DELETE',
@@ -649,26 +620,23 @@ export default function AdminDashboard() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Delete booking error:', errorText);
-        alert('Failed to delete booking: ' + errorText);
-        return;
+        throw new Error(errorText);
       }
 
-      // Remove from localStorage confirmed list if it was confirmed
+      // --- Admin Logic: Clean up Local Storage ---
       if (booking && booking.status === 'confirmed' && booking.parking_lot_id) {
         const confirmedBookingsKey = `confirmedBookings_${booking.parking_lot_id}`;
         const existingConfirmed = JSON.parse(localStorage.getItem(confirmedBookingsKey) || '[]');
         const updatedConfirmed = existingConfirmed.filter(id => id !== bookingId);
         localStorage.setItem(confirmedBookingsKey, JSON.stringify(updatedConfirmed));
-        console.log('✓ Removed booking from localStorage confirmed list:', bookingId);
       }
 
-      // If booking was confirmed, we need to free up a parking slot
+      // --- Admin Logic: Free up Parking Slot ---
       if (booking && booking.status === 'confirmed') {
         const loc = parkingSlots.find(p => p.id === booking.parking_lot_id);
         if (loc) {
           try {
-            // Get all occupied slots and free the first one (since we don't track which specific slot was used)
+            // Get all occupied slots and free the first one
             const slotsResponse = await fetch(`http://localhost:8080/api/parking-slots/${loc.id}`);
             if (slotsResponse.ok) {
               const slots = await slotsResponse.json();
@@ -677,9 +645,7 @@ export default function AdminDashboard() {
               if (occupiedSlot) {
                 await fetch(`http://localhost:8080/api/parking-slots/${occupiedSlot.slot_id}`, {
                   method: 'PUT',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ status: 'vacant' }),
                 });
               }
@@ -690,12 +656,18 @@ export default function AdminDashboard() {
         }
       }
 
+      // Refresh Data and Close Modal
       loadBookings();
       initParkingSlots();
-      alert('Booking deleted successfully!');
+      setIsDeleteModalOpen(false);
+      setBookingToDelete(null);
+      // Optional: alert('Booking deleted successfully!'); 
+
     } catch (error) {
       console.error('Error deleting booking:', error);
       alert('Failed to delete booking: ' + error.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -973,6 +945,31 @@ export default function AdminDashboard() {
           )}
         </main>
       </div>
+
+      <ConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Booking?"
+        message="Are you sure? This will remove the booking and free up the parking slot if it was reserved."
+        isLoading={isDeleting}
+      />
+
+      <AskModal 
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={executeConfirmation}
+        title="Confirm Booking Request"
+        message="Are you sure you want to confirm this booking? This will mark a parking slot as occupied."
+        isLoading={isProcessing}
+      />
+
+      <SuccessModal 
+        isOpen={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        title="Booking Confirmed"
+        message="The booking has been approved and the slot is now reserved."
+      />
     </div>
   );
 }

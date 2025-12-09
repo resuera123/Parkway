@@ -1026,3 +1026,20 @@
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
   transform: translateY(-6px);
 }
+
+/* Fix alignment for the "✓ Confirmed" text */
+.confirmed-text {
+  display: inline-flex;      /* align items side-by-side */
+  align-items: center;       /* center them vertically */
+  justify-content: center;   /* center them horizontally */
+  gap: 6px;                  /* add space between the checkmark and text */
+  white-space: nowrap;       /* prevent the text from wrapping to the next line */
+  
+  /* Optional: Enhance the look */
+  color: #2e7d32;            /* Dark Green */
+  font-weight: 700;
+  font-size: 0.9rem;
+  background-color: rgba(46, 125, 50, 0.1); /* Very light green background */
+  padding: 5px 10px;
+  border-radius: 15px;
+}

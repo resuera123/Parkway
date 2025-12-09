@@ -1320,3 +1320,202 @@ body {
   color:#fff;
   border:none;
 }
+
+/* =========================================
+   CUSTOM NATIVE MODAL STYLES
+   ========================================= */
+
+/* The Dark Overlay Background */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+  backdrop-filter: blur(4px); /* Nice blur effect */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+/* The Modal Box */
+.custom-modal-content {
+  background: white;
+  width: 90%;
+  max-width: 400px;
+  padding: 2rem;
+  border-radius: 25px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); /* Bouncy effect */
+}
+
+/* Modal Icon */
+.modal-icon-warning {
+  font-size: 4rem;
+  color: #f44336; /* Red warning color */
+  margin-bottom: 1rem;
+}
+
+/* Text Styling */
+.custom-modal-content h3 {
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.custom-modal-content p {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+/* Buttons Container */
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* Button Styles */
+.modal-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-size: 0.9rem;
+}
+
+.modal-btn:hover {
+  transform: translateY(-2px);
+}
+
+.modal-btn:active {
+  transform: translateY(0);
+}
+
+/* Cancel Button (Teal/Blue to match theme or Grey) */
+.modal-btn.cancel {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.modal-btn.cancel:hover {
+  background: #e0e0e0;
+}
+
+/* Confirm Button (Red for Danger) */
+.modal-btn.confirm {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.modal-btn.confirm:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.9); 
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1); 
+  }
+}
+
+/* =========================================
+   SUCCESS MODAL STYLES
+   ========================================= */
+
+/* The Icon (Teal/Cyan Color) */
+.modal-icon-success {
+  font-size: 4rem;
+  color: #00bcd4; 
+  margin-bottom: 1rem;
+  animation: popIn 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+/* The OK Button */
+.modal-btn.success-btn {
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  color: white;
+  width: 100%; /* Full width button looks better for success messages */
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+  margin-top: 10px;
+}
+
+.modal-btn.success-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4);
+}
+
+/* Icon Animation */
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  80% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* =========================================
+   ASK MODAL STYLES (Blue/Teal Theme)
+   ========================================= */
+
+/* The Question Mark Icon Container */
+.modal-icon-ask {
+  font-size: 4rem;
+  color: #00bcd4;
+  border: 4px solid #f0f8ff;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  animation: pulse-ask 2s infinite;
+}
+
+/* The "Yes" Button (Teal Gradient) */
+.modal-btn.confirm-teal {
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+}
+
+.modal-btn.confirm-teal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4);
+}
+
+.modal-btn.confirm-teal:disabled {
+  background: #ccc;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Pulse Animation for the Icon */
+@keyframes pulse-ask {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 188, 212, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(0, 188, 212, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 188, 212, 0); }
+}

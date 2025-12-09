@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/BookingModal.css';
+import SuccessModal from './SuccessModal';
 
 export default function BookingModal({ isOpen, onClose, parkingSlot }) {
   const [bookingData, setBookingData] = useState({
@@ -13,6 +14,7 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
   const [loading, setLoading] = useState(true);
   const [parkingAvailable, setParkingAvailable] = useState(true);
   const [occupancy, setOccupancy] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Check parking availability and fetch user's vehicle information
   useEffect(() => {
@@ -170,23 +172,17 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
         return;
       }
 
-      setSuccess('Booking request submitted! Awaiting admin confirmation.');
-      
-      setTimeout(() => {
-        onClose();
-        setBookingData({
-          dateReserved: '',
-          timeIn: '',
-          timeOut: '',
-          vehicleType: ''
-        });
-        setSuccess('');
-        window.location.reload();
-      }, 2000);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Booking error:', error);
       setError('Network error. Please try again.');
     }
+  };
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false); // Hide the success message
+    onClose(); // Close the main booking form
+    window.location.reload(); // Refresh the page
   };
 
   if (!isOpen) return null;
@@ -294,6 +290,12 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
             </div>
           </form>
         )}
+        <SuccessModal 
+          isOpen={showSuccessModal}
+          onClose={handleSuccessClose}
+          title="Booking Successful!"
+          message="Your parking slot has been reserved. Please wait for admin confirmation."
+        />
       </div>
     </div>
   );

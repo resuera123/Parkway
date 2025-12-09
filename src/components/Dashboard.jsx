@@ -10,6 +10,7 @@ import smmaboloImg from '../images/smmabolo.jpg';
 import itparkImg from '../images/itpark.jpeg';
 import ayalaImg from '../images/ayala.jpg';
 import emallImg from '../images/emall.jpg';
+import ConfirmationModal from './ConfirmationModal';
 
 export default function Dashboard() {
   const { logout } = useAuth();
@@ -23,6 +24,9 @@ export default function Dashboard() {
   const [bookings, setBookings] = useState([]);
   const [showBookingHistory, setShowBookingHistory] = useState(false);
   const [parkingSlots, setParkingSlots] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load user from localStorage
   useEffect(() => {
@@ -86,13 +90,22 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteBooking = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
-      return;
-    }
+  // Function 1: Triggered when you click "Delete" in the table
+  // This ONLY opens the modal
+  const handleDeleteBooking = (bookingId) => {
+    setBookingToDelete(bookingId);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Function 2: Triggered when you click "Yes" inside the Modal
+  // This actually talks to Spring Boot
+  const confirmDelete = async () => {
+    if (!bookingToDelete) return;
+
+    setIsDeleting(true);
 
     try {
-      const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
+      const response = await fetch(`http://localhost:8080/api/bookings/${bookingToDelete}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -100,15 +113,19 @@ export default function Dashboard() {
       });
 
       if (!response.ok) {
-        alert('Failed to delete booking');
-        return;
+        throw new Error('Failed to delete booking');
       }
 
-      alert('Booking deleted successfully!');
+      // Success! Refresh the list and close modal
       loadUserBookings(user.id);
+      setIsDeleteModalOpen(false);
+      setBookingToDelete(null);
+
     } catch (error) {
       console.error('Error deleting booking:', error);
-      alert('Failed to delete booking');
+      alert('Failed to delete booking'); // You can keep this alert as a fallback for errors, or remove it
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -529,6 +546,15 @@ export default function Dashboard() {
           parkingSlot={selectedSlot}
         />
       )}
+
+      <ConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Booking?"
+        message="Are you sure you want to delete this? This action cannot be undone."
+        isLoading={isDeleting}
+      />
     </>
   );
 }
