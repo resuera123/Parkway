@@ -295,7 +295,8 @@
 /* Layout */
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;       
+  overflow: hidden;    
   background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
@@ -382,6 +383,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;       
+  overflow-y: auto;   
   gap: 1rem;
 }
 
