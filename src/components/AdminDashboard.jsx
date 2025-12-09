@@ -8,9 +8,6 @@ export default function AdminDashboard() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [adminUser, setAdminUser] = useState(null);
-  const [adminNotifications, setAdminNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [parkingSlots, setParkingSlots] = useState([]);
   const [activeSection, setActiveSection] = useState('overview'); // overview | bookings | spaces | reports
   const [bookings, setBookings] = useState([]);
@@ -22,7 +19,6 @@ export default function AdminDashboard() {
     const cu = localStorage.getItem('currentUser');
     if (cu) setAdminUser(JSON.parse(cu));
     initParkingSlots();
-    loadAdminNotifications();
     loadBookings();
   }, []);
 
@@ -190,49 +186,6 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error fetching parking lot:', error);
       setParkingSlots([]);
-    }
-  };
-
-  const loadAdminNotifications = async () => {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!currentUser || !currentUser.id) {
-      setAdminNotifications([]);
-      return;
-    }
-
-    try {
-      console.log('🔔 Loading admin notifications for user_id:', currentUser.id);
-      console.log('Fetching from:', `http://localhost:8080/api/notifications/admin/${currentUser.id}`);
-      
-      const response = await fetch(`http://localhost:8080/api/notifications/admin/${currentUser.id}`);
-      console.log('Admin notifications response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Admin notifications received:', data);
-        console.log('Number of admin notifications:', Array.isArray(data) ? data.length : 'Not an array');
-        
-        if (Array.isArray(data)) {
-          setAdminNotifications(data);
-          const unread = data.filter(n => !n.read).length;
-          setUnreadCount(unread);
-          console.log('Unread admin notifications:', unread);
-        } else {
-          console.warn('⚠️ Response is not an array:', typeof data);
-          setAdminNotifications([]);
-          setUnreadCount(0);
-        }
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Failed to load admin notifications:', response.status);
-        console.error('Error details:', errorText);
-        setAdminNotifications([]);
-        setUnreadCount(0);
-      }
-    } catch (error) {
-      console.error('❌ Exception loading admin notifications:', error);
-      setAdminNotifications([]);
-      setUnreadCount(0);
     }
   };
 
@@ -529,52 +482,6 @@ export default function AdminDashboard() {
     setUnsavedChanges(false);
   };
 
-  const handleApproveBooking = (notificationId, bookingId) => {
-    const bookingsAll = JSON.parse(localStorage.getItem('bookings')) || [];
-    const booking = bookingsAll.find(b => b.id === bookingId);
-    if (booking) {
-      // simplistic: mark first free slot as reserved
-      const loc = parkingSlots.find(p => p.name === booking.parkingSlot);
-      if (loc) {
-        const key = `slotStatuses_${loc.id}`;
-        let statuses = JSON.parse(localStorage.getItem(key)) || [];
-        const freeIndex = statuses.findIndex(s => !s.reserved);
-        if (freeIndex !== -1) {
-          statuses[freeIndex].reserved = true;
-          localStorage.setItem(key, JSON.stringify(statuses));
-          const bookedCount = statuses.filter(s => s.reserved).length;
-          const updatedParking = parkingSlots.map(p =>
-            p.id === loc.id ? { ...p, bookedSlots: bookedCount } : p
-          );
-          localStorage.setItem('parkingSlots', JSON.stringify(updatedParking));
-          setParkingSlots(updatedParking);
-          if (loc.id === selectedLocationId) setLocationSlots(statuses);
-        }
-      }
-      const adminNotifs = JSON.parse(localStorage.getItem('adminNotifications')) || [];
-      const updated = adminNotifs.map(n =>
-        n.id === notificationId ? { ...n, read: true, status: 'approved' } : n
-      );
-      localStorage.setItem('adminNotifications', JSON.stringify(updated));
-      loadAdminNotifications();
-      loadBookings();
-    }
-  };
-
-  const markNotificationAsRead = async (id) => {
-    try {
-      await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      loadAdminNotifications();
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -594,7 +501,7 @@ export default function AdminDashboard() {
       console.log('Booking to confirm:', booking);
       
       // Since backend endpoints are failing due to CORS/implementation issues,
-      // we'll update the status locally and proceed with notifications and slot updates
+      // we'll update the status locally and proceed with slot updates
       console.warn('⚠️ Backend booking confirmation endpoint has issues. Updating locally.');
       console.warn('Backend needs to fix: 1) CORS configuration, 2) /confirm endpoint query bug');
       
@@ -655,37 +562,6 @@ export default function AdminDashboard() {
       // Immediately update state to trigger re-render
       setBookings(updatedBookings);
       
-      // Create user notification
-      try {
-        const notificationPayload = {
-          user_id: booking.user_id,
-          booking_id: bookingId,
-          parking_lot_id: booking.parking_lot_id,
-          title: 'Booking Confirmed!',
-          message: `Your booking at ${booking.parking_lot_name || 'parking lot'} on ${new Date(booking.date_reserved).toLocaleDateString()} (${booking.time_in} - ${booking.time_out}) has been confirmed!`,
-          type: 'confirmation',
-          read: false
-        };
-        
-        console.log('Sending user notification:', notificationPayload);
-        
-        const notifResponse = await fetch('http://localhost:8080/api/notifications/user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(notificationPayload),
-        });
-        
-        if (notifResponse.ok) {
-          console.log('✓ User notification sent successfully');
-        } else {
-          console.error('Failed to send user notification, status:', notifResponse.status);
-        }
-      } catch (notifError) {
-        console.error('Failed to send user notification:', notifError);
-      }
-
       // Find first available parking slot and mark as occupied
       const loc = parkingSlots.find(p => p.id === booking.parking_lot_id);
       console.log('Looking for parking lot:', booking.parking_lot_id, 'Found:', loc);
@@ -732,10 +608,7 @@ export default function AdminDashboard() {
       
       // Reload all data to ensure everything is in sync
       console.log('Reloading all data after confirmation...');
-      await Promise.all([
-        loadAdminNotifications(),
-        initParkingSlots()
-      ]);
+      await initParkingSlots();
       
       // Always refresh the parking slots view for the booking's location
       if (booking.parking_lot_id) {
@@ -818,7 +691,6 @@ export default function AdminDashboard() {
       }
 
       loadBookings();
-      loadAdminNotifications();
       initParkingSlots();
       alert('Booking deleted successfully!');
     } catch (error) {
@@ -889,41 +761,6 @@ export default function AdminDashboard() {
               <span>Welcome, {adminUser?.firstname || 'Admin'}</span>
               <span className="role-tag">Admin</span>
             </div>
-            <div
-              className="notification-icon-container"
-              onClick={() => setShowNotifications(!showNotifications)}
-            > 
-              <div className="notification-icon">🔔</div>
-              {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
-            </div>
-            {showNotifications && (
-              <div className="notifications-dropdown">
-                <div className="notifications-header">
-                  <h3>Booking Requests</h3>
-                </div>
-                <div className="notifications-list">
-                  {adminNotifications.length ? adminNotifications.map(n => (
-                    <div
-                      key={n.notification_id || n.id}
-                      className={`notification-item ${n.read ? 'read' : 'unread'}`}
-                    >
-                      <div className="notification-content">
-                        <h4>New Booking Request</h4>
-                        <p><strong>{n.user_name}</strong> requested booking at <strong>{n.parking_lot_name}</strong></p>
-                        <p>Date: {n.date_reserved} | Time: {n.time_in} - {n.time_out}</p>
-                        <small>{new Date(n.created_at || n.timestamp).toLocaleString()}</small>
-                      </div>
-                      {!n.read && (
-                        <button
-                          className="mark-read-btn"
-                          onClick={() => markNotificationAsRead(n.notification_id || n.id)}
-                        >Mark Read</button>
-                      )}
-                    </div>
-                  )) : <div className="no-notifications"><p>No booking requests</p></div>}
-                </div>
-              </div>
-            )}
           </div>
         </header>
 

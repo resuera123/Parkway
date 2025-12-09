@@ -22,9 +22,6 @@ export default function Dashboard() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [showBookingHistory, setShowBookingHistory] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [parkingSlots, setParkingSlots] = useState([]);
 
   // Load user from localStorage
@@ -35,34 +32,12 @@ export default function Dashboard() {
         const userData = JSON.parse(currentUser);
         setUser(userData);
         loadUserBookings(userData.id);
-        loadNotifications(userData.id);
         loadParkingSlots();
-        
-        // Test if notification endpoints exist
-        console.log('🧪 Testing notification endpoints...');
-        testNotificationEndpoints(userData.id);
       } catch (err) {
         console.error('Error loading user:', err);
       }
     }
   }, []);
-  
-  const testNotificationEndpoints = async (userId) => {
-    try {
-      // Test user notifications endpoint
-      const userNotifTest = await fetch(`http://localhost:8080/api/notifications/user/${userId}`);
-      console.log('📡 User notifications endpoint status:', userNotifTest.status, userNotifTest.ok ? '✅ EXISTS' : '❌ NOT FOUND');
-      
-      // Test admin notifications endpoint (if user is admin)
-      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-      if (currentUser.role === 'admin') {
-        const adminNotifTest = await fetch(`http://localhost:8080/api/notifications/admin/${userId}`);
-        console.log('📡 Admin notifications endpoint status:', adminNotifTest.status, adminNotifTest.ok ? '✅ EXISTS' : '❌ NOT FOUND');
-      }
-    } catch (error) {
-      console.error('❌ Error testing notification endpoints:', error);
-    }
-  };
 
   const loadUserBookings = async (userId) => {
     try {
@@ -98,84 +73,7 @@ export default function Dashboard() {
     }
   };
 
-  const loadNotifications = async (userId) => {
-    try {
-      console.log('🔔 Loading user notifications for user_id:', userId);
-      console.log('Fetching from:', `http://localhost:8080/api/notifications/user/${userId}`);
-      
-      const response = await fetch(`http://localhost:8080/api/notifications/user/${userId}`);
-      console.log('User notifications response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ User notifications received:', data);
-        console.log('Number of notifications:', Array.isArray(data) ? data.length : 'Not an array');
-        
-        if (Array.isArray(data)) {
-          setNotifications(data);
-          const unread = data.filter(n => !n.read).length;
-          setUnreadCount(unread);
-          console.log('Unread user notifications:', unread);
-        } else {
-          console.warn('⚠️ Response is not an array:', typeof data);
-          setNotifications([]);
-          setUnreadCount(0);
-        }
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Failed to load user notifications:', response.status);
-        console.error('Error details:', errorText);
-        setNotifications([]);
-        setUnreadCount(0);
-      }
-    } catch (error) {
-      console.error('❌ Exception loading user notifications:', error);
-      setNotifications([]);
-      setUnreadCount(0);
-    }
-  };
 
-  const markNotificationAsRead = async (notificationId) => {
-    try {
-      await fetch(`http://localhost:8080/api/notifications/${notificationId}/read`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      loadNotifications(user.id);
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await fetch(`http://localhost:8080/api/notifications/user/${user.id}/read-all`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      loadNotifications(user.id);
-    } catch (error) {
-      console.error('Error marking all as read:', error);
-    }
-  };
-
-  const deleteNotification = async (notificationId) => {
-    try {
-      await fetch(`http://localhost:8080/api/notifications/${notificationId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      loadNotifications(user.id);
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
-  };
 
   const handleCancelBooking = (bookingId) => {
     if (window.confirm('Are you sure you want to cancel this booking?')) {
@@ -382,64 +280,6 @@ export default function Dashboard() {
           >
             Booking History
           </button>
-          <div 
-            className="notification-icon-container"
-            onClick={() => setShowNotifications(!showNotifications)}
-          >
-            <div className="notification-icon">🔔</div>
-            {unreadCount > 0 && (
-              <span className="notification-badge">{unreadCount}</span>
-            )}
-          </div>
-
-          {showNotifications && (
-            <div className="notifications-dropdown">
-              <div className="notifications-header">
-                <h3>Notifications</h3>
-                {notifications.length > 0 && (
-                  <button 
-                    className="mark-all-read"
-                    onClick={markAllAsRead}
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-              <div className="notifications-list">
-                {notifications.length > 0 ? (
-                  notifications.map((notification) => (
-                    <div 
-                      key={notification.notification_id || notification.id} 
-                      className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-                      onClick={() => markNotificationAsRead(notification.notification_id || notification.id)}
-                    >
-                      <div className="notification-icon-text">
-                        {notification.type === 'booking' ? '✓' : 'ℹ'}
-                      </div>
-                      <div className="notification-content">
-                        <h4>{notification.title}</h4>
-                        <p>{notification.message}</p>
-                        <small>{new Date(notification.created_at || notification.timestamp).toLocaleString()}</small>
-                      </div>
-                      <button 
-                        className="delete-notification"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteNotification(notification.notification_id || notification.id);
-                        }}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="no-notifications">
-                    <p>No notifications yet</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           <div className="user-info">
             <span className="username">Welcome, {user?.firstname || 'User'}</span>
