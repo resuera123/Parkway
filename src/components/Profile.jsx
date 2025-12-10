@@ -95,18 +95,13 @@ export default function Profile() {
     // });
   };
 
-  const handleChangePasswordSubmit = (e) => {
+  const handleChangePasswordSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
       setError('All password fields are required');
-      return;
-    }
-
-    if (passwordData.currentPassword !== user.password) {
-      setError('Current password is incorrect');
       return;
     }
 
@@ -125,29 +120,66 @@ export default function Profile() {
       return;
     }
 
-    // Update password in database
-    const updatedUser = {
-      ...user,
-      password: passwordData.newPassword
-    };
-    
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-    setUser(updatedUser);
-    
-    setSuccess('Password changed successfully!');
-    setShowPasswordChange(false);
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    
-    // TODO: Send update to backend API
-    // await fetch(`http://localhost:8080/api/users/${user.id}/password`, {
-    //   method: 'PUT',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ oldPassword: passwordData.currentPassword, newPassword: passwordData.newPassword })
-    // });
+    try {
+      console.log('Attempting to change password for user:', user.id);
+      console.log('API endpoint:', `http://localhost:8080/api/users/${user.id}/password`);
+      
+      // First, verify current password by attempting login
+      console.log('Step 1: Verifying current password...');
+      const loginResponse = await fetch('http://localhost:8080/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          password: passwordData.currentPassword
+        })
+      });
+
+      if (!loginResponse.ok) {
+        console.error('Current password verification failed:', loginResponse.status);
+        setError('Current password is incorrect');
+        return;
+      }
+
+      console.log('✓ Current password verified');
+      
+      // Now update the password in backend
+      console.log('Step 2: Updating password in database...');
+      const updateResponse = await fetch(`http://localhost:8080/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ...user,
+          password: passwordData.newPassword 
+        })
+      });
+
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error('Password update failed:', updateResponse.status, errorText);
+        throw new Error('Failed to update password in database');
+      }
+
+      console.log('✓ Password updated successfully in database');
+      
+      // Update local storage (without password for security)
+      const updatedUser = {
+        ...user
+        // Don't store password in localStorage
+      };
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+      setSuccess('Password changed successfully!');
+      setShowPasswordChange(false);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Password change error:', error);
+      setError(error.message || 'Failed to change password. Please try again.');
+    }
   };
 
    if (loading) {

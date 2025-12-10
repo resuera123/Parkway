@@ -8,7 +8,6 @@ export default function NavBar() {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    // NEW: ensure we have a user object even after refresh (one-time role persists)
     const storedUser = user || (() => {
         try {
             return JSON.parse(localStorage.getItem('currentUser'));

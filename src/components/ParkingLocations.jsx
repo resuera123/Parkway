@@ -22,7 +22,7 @@ export default function ParkingLocations() {
     if (lowerName.includes('it park') || lowerName.includes('itpark')) return itparkImg;
     if (lowerName.includes('ayala')) return ayalaImg;
     if (lowerName.includes('emall') || lowerName.includes('e-mall')) return emallImg;
-    return smmaboloImg; // Default image
+    return smmaboloImg;
   };
 
   useEffect(() => {
@@ -35,11 +35,10 @@ export default function ParkingLocations() {
       const data = await response.json();
       
       if (response.ok && data.length > 0) {
-        // Fetch occupied count for each parking lot
         const locationsWithOccupancy = await Promise.all(
           data.map(async (lot) => {
             let occupiedCount = 0;
-            const lotId = lot.admin_id; // Use admin_id as parking lot identifier
+            const lotId = lot.admin_id; 
             
             console.log(`Fetching occupancy for ${lot.parking_lot_name} (admin_id: ${lotId})`);
             
@@ -48,7 +47,6 @@ export default function ParkingLocations() {
               if (slotsResponse.ok) {
                 const slots = await slotsResponse.json();
                 if (Array.isArray(slots)) {
-                  // Count occupied or reserved slots
                   occupiedCount = slots.filter(s => 
                     (s.status || '').toLowerCase() === 'occupied' || s.reserved === true
                   ).length;

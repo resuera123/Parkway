@@ -10,10 +10,10 @@ export default function Login() {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
-        role: 'user' // default to user
+        role: 'user' 
     });
     const [pendingUser, setPendingUser] = useState(null);
-    const [tempPassword, setTempPassword] = useState(''); // Store password temporarily
+    const [tempPassword, setTempPassword] = useState(''); 
     const [showRoleSelect, setShowRoleSelect] = useState(false);
     const [showAdminForm, setShowAdminForm] = useState(false);
     const [showVehicleForm, setShowVehicleForm] = useState(false);
@@ -40,7 +40,7 @@ export default function Login() {
         e.preventDefault();
         setError('');
         
-        // Store password temporarily for admin parking lot creation
+       
         setTempPassword(formData.password);
 
         if (!formData.email || !formData.password) {
@@ -48,7 +48,7 @@ export default function Login() {
             return;
         }
 
-        // Admin fixed credentials
+       
         if (formData.email === 'admin@cit.edu' && formData.password === '123456') {
             const adminUser = {
                 username: 'admin@cit.edu',
@@ -64,7 +64,7 @@ export default function Login() {
                 users.push(adminUser);
                 localStorage.setItem('users', JSON.stringify(users));
             } else {
-                // ensure role stays admin if user record exists
+                
                 const idx = users.findIndex(u => u.username === 'admin@cit.edu');
                 users[idx].role = 'admin';
                 localStorage.setItem('users', JSON.stringify(users));
@@ -83,19 +83,18 @@ export default function Login() {
         const loggedUser = result.user;
         console.log('Logged in user:', loggedUser);
 
-        // Check role from database (no role selection)
+        
         if (loggedUser.role === 'admin') {
-            // Admin user - check if they have a parking lot using multiple methods
+        
             try {
                 console.log('Checking parking lot for admin:', loggedUser);
                 
-                // SKIP Method 1 - backend bug: /api/admins/:id returns wrong admin data
-                // Always use email-based lookup to get correct parking lot
+                
                 console.log('Using email-based lookup to avoid backend ID bug');
                 let response = await fetch(`http://localhost:8080/api/admins/email/${encodeURIComponent(loggedUser.email)}`);
                 console.log('Email-based lookup response status:', response.status);
                 
-                // Method 3: If still 404, check all parking lots for matching email
+               
                 if (response.status === 404) {
                     console.log('Method 2 failed, checking all parking lots');
                     response = await fetch('http://localhost:8080/api/admin/parking-lots');
@@ -116,7 +115,7 @@ export default function Login() {
                         if (userLot && (userLot.parkingLotName || userLot.parking_lot_name)) {
                             console.log('✓ Found parking lot via Method 3:', userLot);
                             
-                            // Store the parking lot ID with the user to prevent mix-ups
+                           
                             const updatedUser = {
                                 ...loggedUser,
                                 parkingLotId: userLot.admin_id || userLot.staffID || userLot.staff_id || userLot.id,
@@ -133,16 +132,16 @@ export default function Login() {
                     }
                 }
                 
-                // Check if we got valid data from Method 1 or 2
+                
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Parking lot check data:', data);
                     
                     if (data && (data.parkingLotName || data.parking_lot_name)) {
-                        // Parking lot exists, go to admin dashboard
+                        
                         console.log('Parking lot found, navigating to admin dashboard');
                         
-                        // Store the parking lot ID with the user to prevent mix-ups
+                       
                         const updatedUser = {
                             ...loggedUser,
                             parkingLotId: data.admin_id || data.staffID || data.staff_id || data.id,
@@ -156,7 +155,7 @@ export default function Login() {
                     }
                 }
                 
-                // If all methods failed, show the form
+              
                 console.log('No parking lot found after all methods, showing form');
                 setPendingUser(loggedUser);
                 setShowAdminForm(true);
@@ -167,7 +166,7 @@ export default function Login() {
                 setShowAdminForm(true);
             }
         } else {
-            // Regular user - check if they have a vehicle
+           
             try {
                 console.log('Checking vehicle for user ID:', loggedUser.id);
                 const response = await fetch(`http://localhost:8080/api/vehicles/user/${loggedUser.id}`);
@@ -178,17 +177,17 @@ export default function Login() {
                     console.log('Vehicle check data:', data);
                     
                     if (data && (data.plate_number || data.plateNumber)) {
-                        // Vehicle exists, go to user dashboard
+                       
                         console.log('Vehicle found, navigating to user dashboard');
                         navigate('/dashboard');
                     } else {
-                        // No vehicle yet, show the form
+                       
                         console.log('No vehicle found, showing form');
                         setPendingUser(loggedUser);
                         setShowVehicleForm(true);
                     }
                 } else {
-                    // No vehicle yet, show the form
+                   
                     console.log('No vehicle found (404), showing form');
                     setPendingUser(loggedUser);
                     setShowVehicleForm(true);
@@ -204,7 +203,7 @@ export default function Login() {
     const chooseRole = async (role) => {
         if (!pendingUser) return;
         
-        // Update user role in database
+        
         try {
             await fetch('http://localhost:8080/api/users/update-role', {
                 method: 'POST',
@@ -225,16 +224,16 @@ export default function Login() {
         setPendingUser(updatedUser);
         setShowRoleSelect(false);
         
-        // If admin, check if parking lot exists
+        
         if (role === 'admin') {
             try {
                 const response = await fetch(`http://localhost:8080/api/admins/${pendingUser.id}`);
                 if (response.ok) {
-                    // Parking lot already exists, go to dashboard
+                   
                     setPendingUser(null);
                     navigate('/admin');
                 } else {
-                    // No parking lot, show form
+                   
                     setShowAdminForm(true);
                 }
             } catch (error) {
@@ -330,7 +329,7 @@ export default function Login() {
         const result = await createAdminParkingLot({
             user_id: pendingUser.id,
             email: pendingUser.email,
-            password: tempPassword || formData.password, // Use stored password
+            password: tempPassword || formData.password,
             firstname: pendingUser.firstname,
             lastname: pendingUser.lastname,
             parking_lot_name: parkingLotData.parking_lot_name,
@@ -341,7 +340,7 @@ export default function Login() {
         console.log('Result:', result);
 
         if (result.success) {
-            // Don't update the user ID - it should stay as userID, not staffID
+          
             setShowAdminForm(false);
             setPendingUser(null);
             navigate('/admin');

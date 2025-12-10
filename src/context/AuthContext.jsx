@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
         return { success: false, message: data.message || 'Invalid email or password' };
       }
 
-      // Store user data in localStorage and state
+  
       const userObj = {
         id: data.userID || data.id || data.user_id || data.userId || data.staffID,
         email: data.email,
@@ -77,41 +77,41 @@ export function AuthProvider({ children }) {
   const createAdminParkingLot = async (adminData) => {
     console.log('Creating admin parking lot with data:', adminData);
     
-    // Prepare request body with all possible field name variations
+    
     const requestBody = {
-      // User identification
+     
       user_id: adminData.user_id,
       userId: adminData.user_id,
       
-      // Email (both formats)
+  
       email: adminData.email,
       
-      // Password (multiple formats to ensure backend receives it)
+      
       password: adminData.password,
       Password: adminData.password,
       
-      // First name
+   
       firstname: adminData.firstname,
       firstName: adminData.firstname,
       first_name: adminData.firstname,
       
-      // Last name
+    
       lastname: adminData.lastname,
       lastName: adminData.lastname,
       last_name: adminData.lastname,
       
-      // Parking lot name
+     
       parkingLotName: adminData.parking_lot_name,
       parking_lot_name: adminData.parking_lot_name,
       
-      // Capacity
+    
       capacity: adminData.capacity,
       
-      // Price/Rate
+     
       price: adminData.price,
       rate: adminData.price,
       
-      // Role
+     
       role: 'admin',
       Role: 'admin'
     };
@@ -136,8 +136,7 @@ export function AuthProvider({ children }) {
         return { success: false, message: data.message || 'Failed to create admin parking lot' };
       }
 
-      // Don't update user.id - keep it as user_id, not staff_id
-      // The user.id should always be the userID from the users table
+    
       const staffID = data.staffID || data.staff_id || data.admin_id || data.adminId;
       console.log('Admin created with staffID:', staffID);
 

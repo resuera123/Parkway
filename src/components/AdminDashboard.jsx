@@ -12,7 +12,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [adminUser, setAdminUser] = useState(null);
   const [parkingSlots, setParkingSlots] = useState([]);
-  const [activeSection, setActiveSection] = useState('overview'); // overview | bookings | spaces | reports
+  const [activeSection, setActiveSection] = useState('overview'); // overview | bookings | spaces | reports | profile
   const [bookings, setBookings] = useState([]);
   const [selectedLocationId, setSelectedLocationId] = useState(null);
   const [locationSlots, setLocationSlots] = useState([]); // per-slot status for selected location
@@ -24,10 +24,36 @@ export default function AdminDashboard() {
   const [bookingToConfirm, setBookingToConfirm] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [editData, setEditData] = useState({
+    firstname: '',
+    lastname: '',
+    email: '',
+    parkingLotName: '',
+    capacity: ''
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   
     useEffect(() => {
     const cu = localStorage.getItem('currentUser');
-    if (cu) setAdminUser(JSON.parse(cu));
+    if (cu) {
+      const userData = JSON.parse(cu);
+      setAdminUser(userData);
+      setEditData({
+        firstname: userData.firstname || '',
+        lastname: userData.lastname || '',
+        email: userData.email || '',
+        parkingLotName: userData.parkingLotName || '',
+        capacity: userData.capacity || ''
+      });
+    }
     initParkingSlots();
     loadBookings();
   }, []);
@@ -43,7 +69,6 @@ export default function AdminDashboard() {
     console.log('Current user:', currentUser);
     console.log('Fetching admin parking lot for user ID:', currentUser.id);
     
-    // If parking lot ID is already stored with user, use it directly
     if (currentUser.parkingLotId) {
       console.log('✓ Using stored parking lot ID:', currentUser.parkingLotId);
       try {
@@ -62,15 +87,18 @@ export default function AdminDashboard() {
             console.error('Error fetching slot statuses:', error);
           }
           
+          const capacity = currentUser.capacity || lot.capacity || 10;
+          
           const formattedSlot = {
             id: currentUser.parkingLotId,
             name: lot.parkingLotName || lot.parking_lot_name || currentUser.parkingLotName || 'Unnamed Parking Lot',
-            totalSlots: lot.capacity || 10,
+            totalSlots: parseInt(capacity),
             bookedSlots: bookedCount,
             status: 'available',
             price: `$${lot.rate || lot.price || 0}/hr`
           };
           console.log('Formatted parking slot from stored ID:', formattedSlot);
+          console.log('Using capacity:', capacity);
           setParkingSlots([formattedSlot]);
           setSelectedLocationId(formattedSlot.id);
           loadLocationSlotStatuses(formattedSlot.id);
@@ -82,13 +110,10 @@ export default function AdminDashboard() {
     }
 
     try {
-      // SKIP Method 1 - backend bug: /api/admins/:id returns wrong admin data
-      // Always use email-based lookup to get correct parking lot
       console.log('Using email-based lookup to avoid backend ID bug');
       let response = await fetch(`http://localhost:8080/api/admins/email/${encodeURIComponent(currentUser.email)}`);
       console.log('Email-based lookup response status:', response.status);
       
-      // If email lookup fails, try Method 2: Get all parking lots and find by email
       if (!response.ok && response.status === 404) {
         console.log('Email lookup failed, trying Method 2: Get all parking lots');
         response = await fetch('http://localhost:8080/api/admin/parking-lots');
@@ -99,7 +124,6 @@ export default function AdminDashboard() {
           console.log('All parking lots from database:', allLots);
           console.log('Looking for email:', currentUser.email);
           
-          // Find the lot that matches current user's email (exact match)
           const userLot = allLots.find(lot => {
             const lotEmail = (lot.email || '').toLowerCase().trim();
             const userEmail = (currentUser.email || '').toLowerCase().trim();
@@ -112,7 +136,6 @@ export default function AdminDashboard() {
             const lot = userLot;
             const lotId = lot.admin_id || lot.staffID || lot.staff_id || lot.id;
             
-            // Fetch actual slot statuses from database
             let bookedCount = 0;
             try {
               const slotsResponse = await fetch(`http://localhost:8080/api/parking-slots/${lotId}`);
@@ -124,10 +147,12 @@ export default function AdminDashboard() {
               console.error('Error fetching slot statuses:', error);
             }
             
+            const capacity = currentUser.capacity || lot.capacity || 10;
+            
             const formattedSlot = {
               id: lotId,
               name: lot.parkingLotName || lot.parking_lot_name || 'Unnamed Parking Lot',
-              totalSlots: lot.capacity || 10,
+              totalSlots: parseInt(capacity),
               bookedSlots: bookedCount,
               status: 'available',
               price: `$${lot.rate || lot.price || 0}/hr`
@@ -145,7 +170,6 @@ export default function AdminDashboard() {
         }
       }
       
-      // If we got a successful response from Method 1 or 2
       if (response.ok) {
         const data = await response.json();
         console.log('Admin parking lot data from API:', data);
@@ -164,7 +188,6 @@ export default function AdminDashboard() {
         
         const lotId = lot.admin_id || lot.staffID || lot.staff_id || lot.id;
         
-        // Fetch actual slot statuses from database
         let bookedCount = 0;
         try {
           const slotsResponse = await fetch(`http://localhost:8080/api/parking-slots/${lotId}`);
@@ -176,15 +199,18 @@ export default function AdminDashboard() {
           console.error('Error fetching slot statuses:', error);
         }
         
+        const capacity = currentUser.capacity || lot.capacity || 10;
+        
         const formattedSlot = {
           id: lotId,
           name: lot.parkingLotName || lot.parking_lot_name || 'Unnamed Parking Lot',
-          totalSlots: lot.capacity || 10,
+          totalSlots: parseInt(capacity),
           bookedSlots: bookedCount,
           status: 'available',
           price: `$${lot.rate || lot.price || 0}/hr`
         };
         console.log('Formatted parking slot:', formattedSlot);
+        console.log('Using capacity:', capacity);
         setParkingSlots([formattedSlot]);
         setSelectedLocationId(formattedSlot.id);
         loadLocationSlotStatuses(formattedSlot.id);
@@ -210,20 +236,16 @@ export default function AdminDashboard() {
     try {
       console.log('Loading bookings for admin user:', currentUser);
       
-      // First, we need to get the admin's parking lot ID
       let parkingLotId = null;
       
-      // Check if parking lot ID is already stored with user
       if (currentUser.parkingLotId) {
         parkingLotId = currentUser.parkingLotId;
         console.log('Using stored parking lot ID for bookings:', parkingLotId);
       } else {
-        // SKIP buggy Method 1 (by user ID) - use email-based lookup
         console.log('Using email-based lookup to get parking lot ID');
         let response = await fetch(`http://localhost:8080/api/admins/email/${encodeURIComponent(currentUser.email)}`);
         console.log('Fetch admin by email response status:', response.status);
         
-        // Method 2: Get all parking lots and find matching one
         if (response.status === 404) {
           console.log('Trying to fetch from all parking lots');
           response = await fetch('http://localhost:8080/api/admin/parking-lots');
@@ -253,7 +275,6 @@ export default function AdminDashboard() {
         return;
       }
       
-      // Now fetch bookings using the parking lot ID
       console.log('Fetching bookings for parking lot ID:', parkingLotId);
       const bookingsResponse = await fetch(`http://localhost:8080/api/bookings/admin/${parkingLotId}`);
       console.log('Bookings response status:', bookingsResponse.status);
@@ -263,7 +284,6 @@ export default function AdminDashboard() {
         console.log('Bookings data:', data);
         console.log('Number of bookings:', Array.isArray(data) ? data.length : 'Not an array');
         
-        // Fetch vehicle info for each booking to get model, plate number, etc.
         const bookingsWithVehicles = await Promise.all(
           data.map(async (booking) => {
             if (booking.user_id) {
@@ -288,14 +308,12 @@ export default function AdminDashboard() {
         
         console.log('Bookings with vehicle info:', bookingsWithVehicles);
         
-        // Merge with locally confirmed bookings (persisted in localStorage)
         const confirmedBookingsKey = `confirmedBookings_${parkingLotId}`;
         const localConfirmed = JSON.parse(localStorage.getItem(confirmedBookingsKey) || '[]');
         console.log('Locally confirmed booking IDs:', localConfirmed);
         
         const mergedBookings = bookingsWithVehicles.map(booking => {
           const bookingId = booking.booking_id || booking.id;
-          // If this booking was confirmed locally, override backend status
           if (localConfirmed.includes(bookingId)) {
             console.log(`Overriding booking ${bookingId} status to confirmed (from localStorage)`);
             return { ...booking, status: 'confirmed' };
@@ -346,24 +364,25 @@ export default function AdminDashboard() {
 
   const loadLocationSlotStatuses = async (locationId) => {
     try {
-      console.log('Fetching slots for location:', locationId);
+      console.log('=== Loading slots for location:', locationId, '===');
       const response = await fetch(`http://localhost:8080/api/parking-slots/${locationId}`);
       if (response.ok) {
         const slots = await response.json();
-        console.log('Slots from API:', slots);
+        console.log('✓ Slots from API:', slots);
+        console.log('✓ Number of slots returned:', slots.length);
         
-        // If no slots exist, initialize them in the backend
+        const location = parkingSlots.find(p => p.id === locationId);
+        const expectedCapacity = location?.totalSlots || 10;
+        console.log('Expected capacity:', expectedCapacity, 'Actual slots:', slots.length);
+        
         if (!slots || slots.length === 0) {
-          const location = parkingSlots.find(p => p.id === locationId);
-          const capacity = location?.totalSlots || 10;
+          const capacity = expectedCapacity;
           
           console.warn(`No slots found for location ${locationId}. Attempting to initialize slots in backend...`);
           
-          // Try to initialize slots in the backend
           const initialized = await initializeParkingSlots(locationId, capacity);
           
           if (initialized) {
-            // Retry fetching slots after initialization
             const retryResponse = await fetch(`http://localhost:8080/api/parking-slots/${locationId}`);
             if (retryResponse.ok) {
               const newSlots = await retryResponse.json();
@@ -380,7 +399,6 @@ export default function AdminDashboard() {
             }
           }
           
-          // If initialization failed or doesn't exist, show default slots
           const defaultSlots = Array.from({ length: capacity }, (_, i) => ({
             slotId: null,
             slotNumber: i + 1,
@@ -391,19 +409,15 @@ export default function AdminDashboard() {
           return;
         }
         
-        // Log each slot's raw status before formatting
         slots.forEach(slot => {
           console.log(`Slot ${slot.slot_number || slot.slotNumber}: status="${slot.status}", reserved=${slot.reserved}`);
         });
         
         const formattedSlots = slots.map(slot => {
-          // Check multiple status formats
           const status = (slot.status || '').toLowerCase();
           const reservedField = slot.reserved;
           
-          // Consider a slot occupied if:
-          // 1. status is 'occupied' OR 'reserved'
-          // 2. OR reserved field is true
+          
           const isOccupied = status === 'occupied' || status === 'reserved' || reservedField === true;
           
           return {
@@ -417,7 +431,27 @@ export default function AdminDashboard() {
         console.log('Occupied count:', formattedSlots.filter(s => s.reserved).length);
         console.log('Vacant count:', formattedSlots.filter(s => !s.reserved).length);
         
-        // Additional check - if ALL slots are occupied for a new parking lot, something is wrong
+        if (formattedSlots.length < expectedCapacity) {
+          console.warn(`⚠️ Backend has ${formattedSlots.length} slots but capacity is ${expectedCapacity}`);
+          console.log('Adding missing slots locally...');
+          
+          const existingNumbers = new Set(formattedSlots.map(s => s.slotNumber));
+          for (let i = 1; i <= expectedCapacity; i++) {
+            if (!existingNumbers.has(i)) {
+              formattedSlots.push({
+                slotId: null,
+                slotNumber: i,
+                reserved: false
+              });
+              console.log(`Added missing slot P${i}`);
+            }
+          }
+          
+         
+          formattedSlots.sort((a, b) => a.slotNumber - b.slotNumber);
+          console.log(`✓ Extended to ${formattedSlots.length} slots`);
+        }
+        
         const allOccupied = formattedSlots.every(s => s.reserved);
         if (allOccupied && formattedSlots.length > 0) {
           console.error('⚠️ WARNING: All slots are showing as occupied! This is likely a backend issue.');
@@ -472,7 +506,6 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         console.log('✓ Slot updated successfully');
-        // Reload slots to reflect changes
         await loadLocationSlotStatuses(selectedLocationId);
         await initParkingSlots();
       } else {
@@ -485,7 +518,6 @@ export default function AdminDashboard() {
   };
 
   const commitLocationChanges = async () => {
-    // Changes are now saved immediately on toggle, so this is just to refresh
     if (!selectedLocationId) return;
     await loadLocationSlotStatuses(selectedLocationId);
     await initParkingSlots();
@@ -497,13 +529,368 @@ export default function AdminDashboard() {
     navigate('/');
   };
 
-  // 1. Trigger - Opens the "Are you sure?" Modal
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSuccess('');
+
+    try {
+      console.log('Updating admin profile...');
+      console.log('Admin ID:', adminUser.id);
+      console.log('Parking Lot ID:', adminUser.parkingLotId);
+      console.log('Edit Data:', editData);
+      
+      try {
+        const response = await fetch(`http://localhost:8080/api/users/${adminUser.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...adminUser,
+            firstname: editData.firstname,
+            lastname: editData.lastname,
+            email: editData.email
+          })
+        });
+
+        if (response.ok) {
+          console.log('✓ Admin user info updated successfully');
+        } else {
+          const errorText = await response.text();
+          console.warn('Could not update via /api/users:', response.status, errorText);
+        }
+      } catch (error) {
+        console.warn('Admin user update failed (continuing with parking lot update):', error);
+      }
+
+      if (adminUser.parkingLotId) {
+        console.log('Updating parking lot...');
+        console.log('Parking Lot ID:', adminUser.parkingLotId);
+        console.log('New capacity:', editData.capacity);
+        console.log('New name:', editData.parkingLotName);
+        
+        let updateSuccess = false;
+        
+        try {
+          const getParkingLotResponse = await fetch(`http://localhost:8080/api/admins/${adminUser.parkingLotId}`);
+          
+          if (getParkingLotResponse.ok) {
+            const parkingLotData = await getParkingLotResponse.json();
+            console.log('Current parking lot data:', parkingLotData);
+            
+            const capacityResponse = await fetch(`http://localhost:8080/api/admins/${adminUser.parkingLotId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...parkingLotData,
+                capacity: parseInt(editData.capacity),
+                parkingLotName: editData.parkingLotName,
+                parking_lot_name: editData.parkingLotName
+              })
+            });
+
+            if (capacityResponse.ok) {
+              console.log('✓ Parking lot updated via /api/admins');
+              updateSuccess = true;
+            } else {
+              const errorText = await capacityResponse.text();
+              console.error('Failed via /api/admins:', capacityResponse.status, errorText);
+            }
+          }
+        } catch (error) {
+          console.error('Error with /api/admins endpoint:', error);
+        }
+        
+        if (!updateSuccess) {
+          try {
+            console.log('Trying /api/admin/parking-lots endpoint...');
+            const allLotsResponse = await fetch('http://localhost:8080/api/admin/parking-lots');
+            
+            if (allLotsResponse.ok) {
+              const allLots = await allLotsResponse.json();
+              const currentLot = allLots.find(lot => 
+                (lot.admin_id || lot.staffID || lot.staff_id || lot.id) === adminUser.parkingLotId
+              );
+              
+              if (currentLot) {
+                console.log('Found parking lot in all lots:', currentLot);
+                const lotId = currentLot.admin_id || currentLot.staffID || currentLot.staff_id || currentLot.id;
+                
+                const updateResponse = await fetch(`http://localhost:8080/api/admin/parking-lots/${lotId}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    ...currentLot,
+                    capacity: parseInt(editData.capacity),
+                    parkingLotName: editData.parkingLotName,
+                    parking_lot_name: editData.parkingLotName
+                  })
+                });
+                
+                if (updateResponse.ok) {
+                  console.log('✓ Parking lot updated via /api/admin/parking-lots');
+                  updateSuccess = true;
+                } else {
+                  const errorText = await updateResponse.text();
+                  console.error('Failed via /api/admin/parking-lots:', updateResponse.status, errorText);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error with /api/admin/parking-lots endpoint:', error);
+          }
+        }
+        
+        if (!updateSuccess) {
+          console.warn('⚠️ Could not update parking lot capacity via any endpoint');
+          console.warn('The capacity change will be saved locally but may not persist in the backend');
+        } else {
+          console.log('✓ Parking lot capacity updated successfully!');
+        }
+      }
+
+      if (adminUser.parkingLotId && editData.capacity) {
+        const newCapacity = parseInt(editData.capacity);
+        console.log('Syncing parking slots to new capacity:', newCapacity);
+        
+        try {
+          const slotsResponse = await fetch(`http://localhost:8080/api/parking-slots/${adminUser.parkingLotId}`);
+          
+          if (slotsResponse.ok) {
+            const existingSlots = await slotsResponse.json();
+            const currentCount = existingSlots.length;
+            console.log('Current slot count:', currentCount, 'New capacity:', newCapacity);
+            
+            if (newCapacity > currentCount) {
+              const slotsToCreate = newCapacity - currentCount;
+              console.log(`Creating ${slotsToCreate} new slots (from ${currentCount + 1} to ${newCapacity})...`);
+              
+              const createPromises = [];
+              for (let i = currentCount + 1; i <= newCapacity; i++) {
+                const promise = fetch('http://localhost:8080/api/parking-slots', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    admin_id: adminUser.parkingLotId,
+                    slot_number: i,
+                    status: 'vacant',
+                    reserved: false
+                  })
+                }).then(response => {
+                  if (response.ok) {
+                    console.log(`✓ Created slot ${i}`);
+                    return true;
+                  } else {
+                    console.error(`Failed to create slot ${i}:`, response.status);
+                    return false;
+                  }
+                }).catch(error => {
+                  console.error(`Error creating slot ${i}:`, error);
+                  return false;
+                });
+                
+                createPromises.push(promise);
+              }
+              
+              const results = await Promise.all(createPromises);
+              const successCount = results.filter(r => r).length;
+              console.log(`✓ Successfully created ${successCount} out of ${slotsToCreate} slots`);
+              
+              if (successCount === 0) {
+                console.warn('⚠️ Backend slot creation not supported. Extending slots locally...');
+                const currentSlots = [...existingSlots];
+                for (let i = currentCount + 1; i <= newCapacity; i++) {
+                  currentSlots.push({
+                    slot_id: null,
+                    slotId: null,
+                    slot_number: i,
+                    slotNumber: i,
+                    status: 'vacant',
+                    reserved: false,
+                    admin_id: adminUser.parkingLotId
+                  });
+                }
+                
+                const formattedSlots = currentSlots.map(slot => ({
+                  slotId: slot.slot_id || slot.slotId,
+                  slotNumber: slot.slot_number || slot.slotNumber,
+                  reserved: (slot.status || '').toLowerCase() === 'occupied' || slot.reserved === true
+                }));
+                setLocationSlots(formattedSlots);
+                console.log('✓ Extended slots locally to', newCapacity);
+              }
+            }
+            else if (newCapacity < currentCount) {
+              console.log(`Reducing slots from ${currentCount} to ${newCapacity}...`);
+              const slotsToRemove = existingSlots
+                .filter(s => (s.status || '').toLowerCase() === 'vacant' && s.reserved !== true)
+                .sort((a, b) => (b.slot_number || b.slotNumber) - (a.slot_number || a.slotNumber))
+                .slice(0, currentCount - newCapacity);
+              
+              for (const slot of slotsToRemove) {
+                try {
+                  const slotId = slot.slot_id || slot.slotId;
+                  const deleteResponse = await fetch(`http://localhost:8080/api/parking-slots/${slotId}`, {
+                    method: 'DELETE'
+                  });
+                  
+                  if (deleteResponse.ok) {
+                    console.log(`✓ Deleted slot ${slot.slot_number || slot.slotNumber}`);
+                  } else {
+                    console.error(`Failed to delete slot ${slotId}:`, deleteResponse.status);
+                  }
+                } catch (error) {
+                  console.error(`Error deleting slot:`, error);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error syncing parking slots:', error);
+        }
+      }
+
+      const updatedUser = {
+        ...adminUser,
+        firstname: editData.firstname,
+        lastname: editData.lastname,
+        email: editData.email,
+        parkingLotName: editData.parkingLotName,
+        capacity: editData.capacity
+      };
+
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      setAdminUser(updatedUser);
+      
+      console.log('✓ Profile saved locally:', updatedUser);
+      
+      setProfileSuccess('Profile and parking capacity updated successfully!');
+      setIsEditingProfile(false);
+      
+      console.log('Refreshing parking data...');
+      
+      if (activeSection === 'spaces') {
+        const newCapacity = parseInt(editData.capacity);
+        const currentSlotCount = locationSlots.length;
+        
+        console.log('Currently in parking spaces view. Updating from', currentSlotCount, 'to', newCapacity, 'slots');
+        
+        if (newCapacity > currentSlotCount) {
+          const newSlots = [...locationSlots];
+          for (let i = currentSlotCount + 1; i <= newCapacity; i++) {
+            newSlots.push({
+              slotId: null,
+              slotNumber: i,
+              reserved: false
+            });
+          }
+          setLocationSlots(newSlots);
+          console.log('✓ Display updated to show', newSlots.length, 'slots');
+        } else if (newCapacity < currentSlotCount) {
+          const remainingSlots = locationSlots.slice(0, newCapacity);
+          setLocationSlots(remainingSlots);
+          console.log('✓ Display reduced to', remainingSlots.length, 'slots');
+        }
+      }
+      
+      await initParkingSlots();
+      
+      setTimeout(async () => {
+        if (selectedLocationId || adminUser.parkingLotId) {
+          const locationId = selectedLocationId || adminUser.parkingLotId;
+          console.log('Reloading slots from backend for location:', locationId);
+          await loadLocationSlotStatuses(locationId);
+          console.log('✓ Slots refreshed from backend');
+        }
+      }, 1000);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      setProfileError(error.message || 'Failed to update profile');
+    }
+  };
+
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSuccess('');
+
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setProfileError('All password fields are required');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setProfileError('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setProfileError('New password must be at least 6 characters');
+      return;
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      setProfileError('New password must be different from current password');
+      return;
+    }
+
+    try {
+      const loginResponse = await fetch('http://localhost:8080/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: adminUser.email,
+          password: passwordData.currentPassword
+        })
+      });
+
+      if (!loginResponse.ok) {
+        setProfileError('Current password is incorrect');
+        return;
+      }
+
+      const updateResponse = await fetch(`http://localhost:8080/api/users/${adminUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ...adminUser,
+          password: passwordData.newPassword 
+        })
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Failed to update password');
+      }
+
+      setProfileSuccess('Password changed successfully!');
+      setShowPasswordChange(false);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Password change error:', error);
+      setProfileError(error.message || 'Failed to change password');
+    }
+  };
+
+ 
   const handleConfirmBooking = (bookingId) => {
     setBookingToConfirm(bookingId);
     setIsConfirmModalOpen(true);
   };
 
-  // 2. Execution - The actual Logic (This runs when you click YES)
+  
   const executeConfirmation = async () => {
     if (!bookingToConfirm) return;
     
@@ -521,7 +908,6 @@ export default function AdminDashboard() {
         return;
       }
 
-      // --- LOGIC PART A: Call Backend to Confirm Booking ---
       try {
         await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
           method: 'PATCH',
@@ -532,7 +918,6 @@ export default function AdminDashboard() {
         console.warn('Backend update failed, continuing with local update...', backendError);
       }
       
-      // --- LOGIC PART B: Save to LocalStorage (Your Custom Fix) ---
       if (booking.parking_lot_id) {
         const confirmedBookingsKey = `confirmedBookings_${booking.parking_lot_id}`;
         const existingConfirmed = JSON.parse(localStorage.getItem(confirmedBookingsKey) || '[]');
@@ -542,7 +927,6 @@ export default function AdminDashboard() {
         }
       }
 
-      // --- LOGIC PART C: Find Vacant Slot & Mark Occupied ---
       const loc = parkingSlots.find(p => p.id === booking.parking_lot_id);
       if (loc) {
         try {
@@ -553,7 +937,6 @@ export default function AdminDashboard() {
             
             if (vacantSlot) {
               const slotId = vacantSlot.slot_id || vacantSlot.slotId;
-              // API CALL to occupy slot
               await fetch(`http://localhost:8080/api/parking-slots/${slotId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -566,7 +949,6 @@ export default function AdminDashboard() {
         }
       }
 
-      // --- LOGIC PART D: Update UI Immediately ---
       const updatedBookings = bookings.map(b => {
         if ((b.booking_id || b.id) === bookingId) {
           return { ...b, status: 'confirmed' };
@@ -575,13 +957,11 @@ export default function AdminDashboard() {
       });
       setBookings(updatedBookings);
       
-      // Refresh Lists
       await initParkingSlots(); 
       if (booking.parking_lot_id) {
          await loadLocationSlotStatuses(booking.parking_lot_id);
       }
       
-      // Success! Close AskModal, Open SuccessModal
       setIsConfirmModalOpen(false);
       setShowSuccess(true);
       setBookingToConfirm(null);
@@ -595,13 +975,11 @@ export default function AdminDashboard() {
     }
   };
 
-  // 1. Opens the modal
   const handleDeleteBooking = (bookingId) => {
     setBookingToDelete(bookingId);
     setIsDeleteModalOpen(true);
   };
 
-  // 2. executes the deletion (Admin Logic)
   const confirmDelete = async () => {
     if (!bookingToDelete) return;
     
@@ -623,7 +1001,6 @@ export default function AdminDashboard() {
         throw new Error(errorText);
       }
 
-      // --- Admin Logic: Clean up Local Storage ---
       if (booking && booking.status === 'confirmed' && booking.parking_lot_id) {
         const confirmedBookingsKey = `confirmedBookings_${booking.parking_lot_id}`;
         const existingConfirmed = JSON.parse(localStorage.getItem(confirmedBookingsKey) || '[]');
@@ -656,12 +1033,10 @@ export default function AdminDashboard() {
         }
       }
 
-      // Refresh Data and Close Modal
       loadBookings();
       initParkingSlots();
       setIsDeleteModalOpen(false);
       setBookingToDelete(null);
-      // Optional: alert('Booking deleted successfully!'); 
 
     } catch (error) {
       console.error('Error deleting booking:', error);
@@ -671,8 +1046,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // Monthly report calculations
-  const currentMonthKey = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const currentMonthKey = new Date().toISOString().slice(0, 7); 
   const monthlyReport = parkingSlots.map(loc => {
     const locBookings = bookings.filter(b =>
       b.parkingSlot === loc.name &&
@@ -717,6 +1091,10 @@ export default function AdminDashboard() {
             className={`admin-nav-item ${activeSection === 'reports' ? 'active' : ''}`}
             onClick={() => setActiveSection('reports')}
           >Reports</button>
+          <button
+            className={`admin-nav-item ${activeSection === 'profile' ? 'active' : ''}`}
+            onClick={() => setActiveSection('profile')}
+          >Profile</button>
           <button
             className="admin-nav-item danger"
             onClick={handleLogout}
@@ -911,9 +1289,11 @@ export default function AdminDashboard() {
               <div className="spaces-actions">
                 <button
                   className="update-spaces-btn"
-                  onClick={() => {
-                    loadLocationSlotStatuses(selectedLocationId);
-                    initParkingSlots();
+                  onClick={async () => {
+                    console.log('Refreshing slots...');
+                    await initParkingSlots();
+                    await loadLocationSlotStatuses(selectedLocationId);
+                    console.log('✓ Slots refreshed');
                   }}
                 >
                   Refresh Slots
@@ -940,6 +1320,207 @@ export default function AdminDashboard() {
                     <div className="report-line"><span>Occupancy:</span> {parkingSlots.find(p => p.id === r.id)?.bookedSlots}/{parkingSlots.find(p => p.id === r.id)?.totalSlots}</div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'profile' && (
+            <div className="section-block">
+              <h2 className="section-title">Admin Profile</h2>
+              
+              {profileError && <div className="alert alert-error">{profileError}</div>}
+              {profileSuccess && <div className="alert alert-success">{profileSuccess}</div>}
+
+              <div className="profile-section">
+                <div className="profile-header-admin">
+                  <div className="profile-avatar-admin">
+                    {adminUser?.firstname?.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3>{adminUser?.firstname} {adminUser?.lastname}</h3>
+                    <p>{adminUser?.email}</p>
+                    <span className="role-tag">Admin</span>
+                  </div>
+                </div>
+
+                <div className="profile-forms">
+                  <div className="profile-form-section">
+                    <div className="section-header">
+                      <h3>Personal & Parking Lot Information</h3>
+                      {!isEditingProfile && (
+                        <button className="btn-edit" onClick={() => setIsEditingProfile(true)}>
+                          Edit Profile
+                        </button>
+                      )}
+                    </div>
+
+                    {isEditingProfile ? (
+                      <form onSubmit={handleProfileUpdate} className="edit-form">
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>First Name</label>
+                            <input
+                              type="text"
+                              name="firstname"
+                              value={editData.firstname}
+                              onChange={handleEditChange}
+                              required
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Last Name</label>
+                            <input
+                              type="text"
+                              name="lastname"
+                              value={editData.lastname}
+                              onChange={handleEditChange}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label>Email</label>
+                          <input
+                            type="email"
+                            name="email"
+                            value={editData.email}
+                            onChange={handleEditChange}
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Parking Lot Name</label>
+                          <input
+                            type="text"
+                            name="parkingLotName"
+                            value={editData.parkingLotName}
+                            onChange={handleEditChange}
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Parking Lot Capacity (Total Slots)</label>
+                          <input
+                            type="number"
+                            name="capacity"
+                            value={editData.capacity}
+                            onChange={handleEditChange}
+                            min="1"
+                            required
+                          />
+                        </div>
+                        <div className="form-actions">
+                          <button type="submit" className="btn-save">Save Changes</button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel" 
+                            onClick={() => {
+                              setIsEditingProfile(false);
+                              setEditData({
+                                firstname: adminUser.firstname || '',
+                                lastname: adminUser.lastname || '',
+                                email: adminUser.email || '',
+                                parkingLotName: adminUser.parkingLotName || '',
+                                capacity: adminUser.capacity || ''
+                              });
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="profile-display">
+                        <div className="info-row">
+                          <span className="info-label">First Name:</span>
+                          <span className="info-value">{adminUser?.firstname}</span>
+                        </div>
+                        <div className="info-row">
+                          <span className="info-label">Last Name:</span>
+                          <span className="info-value">{adminUser?.lastname}</span>
+                        </div>
+                        <div className="info-row">
+                          <span className="info-label">Email:</span>
+                          <span className="info-value">{adminUser?.email}</span>
+                        </div>
+                        <div className="info-row">
+                          <span className="info-label">Parking Lot Name:</span>
+                          <span className="info-value">{adminUser?.parkingLotName || parkingSlots[0]?.name || 'N/A'}</span>
+                        </div>
+                        <div className="info-row">
+                          <span className="info-label">Total Capacity:</span>
+                          <span className="info-value">{parkingSlots[0]?.totalSlots || adminUser?.capacity || 'N/A'} slots</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="profile-form-section">
+                    <div className="section-header">
+                      <h3>Change Password</h3>
+                      {!showPasswordChange && (
+                        <button className="btn-edit" onClick={() => setShowPasswordChange(true)}>
+                          Change Password
+                        </button>
+                      )}
+                    </div>
+
+                    {showPasswordChange && (
+                      <form onSubmit={handleChangePasswordSubmit} className="password-form">
+                        <div className="form-group">
+                          <label>Current Password</label>
+                          <input
+                            type="password"
+                            name="currentPassword"
+                            value={passwordData.currentPassword}
+                            onChange={handlePasswordChange}
+                            placeholder="Enter current password"
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>New Password</label>
+                          <input
+                            type="password"
+                            name="newPassword"
+                            value={passwordData.newPassword}
+                            onChange={handlePasswordChange}
+                            placeholder="Enter new password"
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Confirm New Password</label>
+                          <input
+                            type="password"
+                            name="confirmPassword"
+                            value={passwordData.confirmPassword}
+                            onChange={handlePasswordChange}
+                            placeholder="Confirm new password"
+                            required
+                          />
+                        </div>
+                        <div className="form-actions">
+                          <button type="submit" className="btn-save">Update Password</button>
+                          <button 
+                            type="button" 
+                            className="btn-cancel" 
+                            onClick={() => {
+                              setShowPasswordChange(false);
+                              setPasswordData({
+                                currentPassword: '',
+                                newPassword: '',
+                                confirmPassword: ''
+                              });
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}

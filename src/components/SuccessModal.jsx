@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/Dashboard.css'; // Ensure this points to your CSS file
+import '../styles/Dashboard.css'; 
 
 const SuccessModal = ({ isOpen, onClose, title, message }) => {
   if (!isOpen) return null;

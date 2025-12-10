@@ -16,7 +16,6 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
   const [occupancy, setOccupancy] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Check parking availability and fetch user's vehicle information
   useEffect(() => {
     const fetchData = async () => {
       const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -27,7 +26,6 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
       }
 
       try {
-        // Check parking lot availability
         const parkingLotId = parkingSlot.id || parkingSlot.staff_id || parkingSlot.admin_id || parkingSlot.staffID;
         
         if (parkingLotId) {
@@ -43,7 +41,6 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
           }
         }
 
-        // Fetch user's vehicle information
         const vehicleResponse = await fetch(`http://localhost:8080/api/vehicles/user/${currentUser.id}`);
         if (vehicleResponse.ok) {
           const vehicleData = await vehicleResponse.json();
@@ -85,7 +82,6 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
     const duration = calculateDuration();
     if (!duration || !parkingSlot?.price) return '0.00';
     
-    // Extract numeric value from price string (e.g., "$5/hr" -> 5)
     const pricePerHour = parseFloat(parkingSlot.price.replace(/[^0-9.]/g, '')) || 0;
     return (pricePerHour * duration).toFixed(2);
   };
@@ -95,7 +91,6 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
     setError('');
     setSuccess('');
 
-    // Check if parking is available before submitting
     if (!parkingAvailable) {
       setError('⚠️ Parking lot is already full. No available slots at this moment.');
       return;
@@ -120,7 +115,6 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
       return;
     }
 
-    // Get parking lot ID - check multiple possible field names
     const parkingLotId = parkingSlot.id || parkingSlot.staff_id || parkingSlot.admin_id || parkingSlot.staffID;
     
     console.log('ParkingSlot data:', parkingSlot);
@@ -133,7 +127,6 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
       return;
     }
 
-    // Prepare booking data
     const bookingPayload = {
       user_id: currentUser.id,
       parking_lot_id: parkingLotId,
@@ -159,10 +152,8 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
       const data = await response.json();
 
       if (!response.ok) {
-        // Enhanced error message handling
         const errorMessage = data.message || data.error || 'Failed to create booking';
         
-        // Check if it's a parking full error
         if (errorMessage.toLowerCase().includes('full') || errorMessage.toLowerCase().includes('available slots')) {
           setError('⚠️ ' + errorMessage);
           setParkingAvailable(false);
@@ -180,9 +171,9 @@ export default function BookingModal({ isOpen, onClose, parkingSlot }) {
   };
 
   const handleSuccessClose = () => {
-    setShowSuccessModal(false); // Hide the success message
-    onClose(); // Close the main booking form
-    window.location.reload(); // Refresh the page
+    setShowSuccessModal(false); 
+    onClose(); 
+    window.location.reload(); 
   };
 
   if (!isOpen) return null;

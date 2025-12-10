@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/Dashboard.css';
-import { BiQuestionMark } from "react-icons/bi"; // <--- 1. Import the icon
+import { BiQuestionMark } from "react-icons/bi"; 
 
 const AskModal = ({ isOpen, onClose, onConfirm, title, message, isLoading }) => {
   if (!isOpen) return null;

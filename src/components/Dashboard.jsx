@@ -90,15 +90,13 @@ export default function Dashboard() {
     }
   };
 
-  // Function 1: Triggered when you click "Delete" in the table
-  // This ONLY opens the modal
+ 
   const handleDeleteBooking = (bookingId) => {
     setBookingToDelete(bookingId);
     setIsDeleteModalOpen(true);
   };
 
-  // Function 2: Triggered when you click "Yes" inside the Modal
-  // This actually talks to Spring Boot
+ 
   const confirmDelete = async () => {
     if (!bookingToDelete) return;
 
@@ -116,14 +114,14 @@ export default function Dashboard() {
         throw new Error('Failed to delete booking');
       }
 
-      // Success! Refresh the list and close modal
+      
       loadUserBookings(user.id);
       setIsDeleteModalOpen(false);
       setBookingToDelete(null);
 
     } catch (error) {
       console.error('Error deleting booking:', error);
-      alert('Failed to delete booking'); // You can keep this alert as a fallback for errors, or remove it
+      alert('Failed to delete booking'); 
     } finally {
       setIsDeleting(false);
     }
@@ -157,17 +155,15 @@ export default function Dashboard() {
       console.log('Parking lots data:', data);
       
       if (response.ok && data.length > 0) {
-        // Fetch occupied count for each parking lot
+        
         const slotsWithOccupiedCount = await Promise.all(
           data.map(async (lot) => {
             let occupiedCount = 0;
-            // Use admin_id as the parking lot ID (that's what the database uses)
             const lotId = lot.admin_id;
             
             console.log(`📊 Checking occupancy for "${lot.parking_lot_name}" (admin_id: ${lotId})`);
             
             try {
-              // Fetch actual slots for this parking lot using admin_id
               const slotsUrl = `http://localhost:8080/api/parking-slots/${lotId}`;
               console.log(`Fetching slots from: ${slotsUrl}`);
               
@@ -180,7 +176,6 @@ export default function Dashboard() {
                 console.log(`Total slots returned: ${Array.isArray(slots) ? slots.length : 'Not an array'}`);
                 
                 if (Array.isArray(slots)) {
-                  // Count slots that are occupied or reserved
                   const occupied = slots.filter(s => {
                     const status = (s.status || '').toLowerCase();
                     const reserved = s.reserved === true || s.reserved === 1 || s.reserved === 'true';
@@ -224,36 +219,28 @@ export default function Dashboard() {
     }
   };
 
-  // Function to get parking lot image based on name (case-insensitive, flexible matching)
   const getParkingImage = (name) => {
     const lowerName = name.toLowerCase().trim();
     
-    // SM City variations
     if (lowerName.includes('sm city') || lowerName.includes('smcity')) {
       return smcityImg;
     }
-    // SM Mabolo variations
     if (lowerName.includes('sm mabolo') || lowerName.includes('mabolo')) {
       return smmaboloImg;
     }
-    // IT Park variations
     if (lowerName.includes('it park') || lowerName.includes('itpark') || lowerName === 'it park') {
       return itparkImg;
     }
-    // Ayala variations
     if (lowerName.includes('ayala')) {
       return ayalaImg;
     }
-    // E-Mall variations
     if (lowerName.includes('e-mall') || lowerName.includes('emall') || lowerName.includes('e mall')) {
       return emallImg;
     }
     
-    // Default image if no match found
     return mapImage;
   };
 
-  // Use parking lots directly from database instead of hardcoded list
   const slotsWithAvailability = parkingSlots.map(slot => {
     return {
       id: slot.id,
@@ -268,7 +255,6 @@ export default function Dashboard() {
     };
   });
 
-  // Filter parking slots based on search query and selected filter
   const filteredSlots = slotsWithAvailability.filter(slot => {
     const matchesSearch = slot.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = selectedFilter === 'ALL' || 
